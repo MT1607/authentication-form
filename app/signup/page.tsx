@@ -1,11 +1,13 @@
 "use client";
 
 import React from "react";
-import { useForm } from "react-hook-form";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {useForm} from "react-hook-form";
+import {Input} from "@/components/ui/input";
+import {Button} from "@/components/ui/button";
+import {Label} from "@/components/ui/label";
+import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
+import axios from "axios";
+import {useRouter} from "next/navigation";
 
 interface SignupFormData {
     email: string;
@@ -14,16 +16,31 @@ interface SignupFormData {
 }
 
 export default function SignupPage() {
+    const router = useRouter();
     const {
         register,
         handleSubmit,
         watch,
-        formState: { errors },
+        formState: {errors},
     } = useForm<SignupFormData>();
 
-    const onSubmit = (data: SignupFormData) => {
-        console.log("Signup data:", data);
-        // Tại đây bạn có thể gọi API signup của backend
+    const onSubmit = async (data: SignupFormData) => {
+        try {
+            console.log("Signup data:", data);
+
+            const response = await axios.post(`http://localhost:3001/register`, {
+                email: data.email, password: data.password,
+            }, {withCredentials: true});
+
+            console.log(response);
+
+            if (response.status === 201) {
+                console.log("Successfully registered!");
+                router.push("/");
+            }
+        } catch (error) {
+            console.log(error);
+        }
     };
 
     const password = watch("password");
@@ -88,7 +105,8 @@ export default function SignupPage() {
                             )}
                         </div>
                         <hr/>
-                        <p className={"text-center"}>Have account ? <a href={"/login"} className={"text-blue-500"}>Log-in</a>
+                        <p className={"text-center"}>Have account ? <a href={"/login"}
+                                                                       className={"text-blue-500"}>Log-in</a>
                         </p>
                         <Button type="submit" className="w-full">
                             Sign Up
