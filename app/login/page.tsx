@@ -1,12 +1,14 @@
 "use client";
 
 import React from "react";
-import { useForm } from "react-hook-form";
+import {useForm} from "react-hook-form";
 // Import các component shadcn UI (giả sử chúng được export từ "@/components/ui")
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {Input} from "@/components/ui/input";
+import {Button} from "@/components/ui/button";
+import {Label} from "@/components/ui/label";
+import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
+import axios from "axios";
+import {useRouter} from "next/navigation";
 
 interface LoginFormData {
     email: string;
@@ -14,15 +16,22 @@ interface LoginFormData {
 }
 
 export default function LoginPage() {
+    const router = useRouter();
     const {
         register,
         handleSubmit,
-        formState: { errors },
+        formState: {errors},
     } = useForm<LoginFormData>();
 
-    const onSubmit = (data: LoginFormData) => {
+    const onSubmit = async (data: LoginFormData) => {
         console.log("Login data:", data);
-        // Tại đây bạn có thể gọi API login của backend
+        await axios.post("http://localhost:3001/login", {
+            email: data.email,
+            password: data.password
+        }, {withCredentials: true}).then(res => {
+            console.log("Login succeeded", res)
+            router.push("/");
+        }).catch(err => console.log(err));
     };
 
     return (
@@ -61,7 +70,9 @@ export default function LoginPage() {
                             )}
                         </div>
                         <hr/>
-                        <p className={"text-center"}>Don&#39;t have account? <a href={"/signup"} className={"text-blue-500"}> Register</a></p>
+                        <p className={"text-center"}>Don&#39;t have account? <a href={"/signup"}
+                                                                                className={"text-blue-500"}> Register</a>
+                        </p>
                         <Button type="submit" className="w-full">
                             Login
                         </Button>
