@@ -8,6 +8,9 @@ import {Label} from "@/components/ui/label";
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
 import axios from "axios";
 import {useRouter} from "next/navigation";
+import {Toaster} from "@/components/ui/toaster";
+import {useToast} from "@/hooks/use-toast";
+import {CheckCircleIcon, XCircleIcon} from "lucide-react";
 
 interface SignupFormData {
     email: string;
@@ -16,6 +19,7 @@ interface SignupFormData {
 }
 
 export default function SignupPage() {
+    const {toast} = useToast();
     const baseUrl = process.env.NEXT_PUBLIC_URL_API;
     const router = useRouter();
     const {
@@ -33,11 +37,29 @@ export default function SignupPage() {
 
             console.log(response);
 
-            if (response.status === 201) {
+            if (response.status === 200) {
+                toast({
+                    variant: "default",
+                    className: "border border-green-500 bg-green-100 text-green-700",
+                    description: (
+                        <div>
+                            <span><CheckCircleIcon className="h-6 w-6 mr-2 text-white-500 inline"/></span>
+                            Register successfully.
+                        </div>
+                    )
+                })
                 router.push("/");
             }
         } catch (error) {
-            console.log(error);
+            toast({
+                variant: "destructive",
+                description: (
+                    <div>
+                        <span><XCircleIcon className="h-6 w-6 mr-2 text-white-500 inline"/></span>
+                        {error.response.data}
+                    </div>
+                )
+            })
         }
     };
 
@@ -112,6 +134,7 @@ export default function SignupPage() {
                     </form>
                 </CardContent>
             </Card>
+            <Toaster/>
         </div>
     );
 }
