@@ -9,6 +9,9 @@ import {Label} from "@/components/ui/label";
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
 import axios from "axios";
 import {useRouter} from "next/navigation";
+import {useToast} from "@/hooks/use-toast";
+import {Toaster} from "@/components/ui/toaster";
+import {CheckCircleIcon, XCircleIcon} from "lucide-react";
 
 interface LoginFormData {
     email: string;
@@ -16,21 +19,59 @@ interface LoginFormData {
 }
 
 export default function LoginPage() {
+    const {toast} = useToast();
     const baseUrl = process.env.NEXT_PUBLIC_URL_API;
     const router = useRouter();
-    const {
-        register,
-        handleSubmit,
-        formState: {errors},
-    } = useForm<LoginFormData>();
+    const {register, handleSubmit, formState: {errors}} = useForm<LoginFormData>();
 
     const onSubmit = async (data: LoginFormData) => {
         await axios.post(`${baseUrl}/login`, {
             email: data.email,
             password: data.password
         }, {withCredentials: true}).then(() => {
+            toast({
+                variant: "default",
+                className: "border border-green-500 bg-green-100 text-green-700",
+                description: (
+                    <div>
+                        <span><CheckCircleIcon className="h-6 w-6 mr-2 text-white-500 inline"/></span>
+                        Login successfully.
+                    </div>
+                )
+            })
             router.push("/");
-        }).catch(err => console.log(err));
+        }).catch(err => {
+            console.log(err.response.data);
+            if (err.status === 400) {
+                switch (err.response.data) {
+                    case "Email incorrect":
+                        console.log("Email incorrect");
+                        toast({
+                            variant: "destructive",
+                            description: (
+                                <div>
+                                    <span><XCircleIcon className="h-6 w-6 mr-2 text-white-500 inline"/></span>
+                                    {err.response.data}
+                                </div>
+                            )
+                        })
+                        break;
+                    case "Password incorrect":
+                        toast({
+                            variant: "destructive",
+                            description: (
+                                <div>
+                                    <span><XCircleIcon className="h-6 w-6 mr-2 text-white-500 inline"/></span>
+                                    {err.response.data}
+                                </div>
+                            )
+                        })
+                        break;
+                    default:
+                        break;
+                }
+            }
+        });
     };
 
     return (
@@ -69,8 +110,9 @@ export default function LoginPage() {
                             )}
                         </div>
                         <hr/>
-                        <p className={"text-center"}>Don&#39;t have account? <a href={"/signup"}
-                                                                                className={"text-blue-500"}> Register</a>
+                        <p className={"text-center"}>
+                            Don&#39;t have account?
+                            <a href={"/signup"} className={"text-blue-500"}> Register</a>
                         </p>
                         <Button type="submit" className="w-full">
                             Login
@@ -78,6 +120,7 @@ export default function LoginPage() {
                     </form>
                 </CardContent>
             </Card>
+            <Toaster/>
         </div>
     );
 }
