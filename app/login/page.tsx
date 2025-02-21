@@ -16,6 +16,7 @@ interface LoginFormData {
 }
 
 export default function LoginPage() {
+    const baseUrl = process.env.NEXT_PUBLIC_URL_API;
     const router = useRouter();
     const {
         register,
@@ -24,12 +25,10 @@ export default function LoginPage() {
     } = useForm<LoginFormData>();
 
     const onSubmit = async (data: LoginFormData) => {
-        console.log("Login data:", data);
-        await axios.post("http://localhost:3001/login", {
+        await axios.post(`${baseUrl}/login`, {
             email: data.email,
             password: data.password
-        }, {withCredentials: true}).then(res => {
-            console.log("Login succeeded", res)
+        }, {withCredentials: true}).then(() => {
             router.push("/");
         }).catch(err => console.log(err));
     };

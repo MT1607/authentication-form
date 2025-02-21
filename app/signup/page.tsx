@@ -16,6 +16,7 @@ interface SignupFormData {
 }
 
 export default function SignupPage() {
+    const baseUrl = process.env.NEXT_PUBLIC_URL_API;
     const router = useRouter();
     const {
         register,
@@ -26,16 +27,13 @@ export default function SignupPage() {
 
     const onSubmit = async (data: SignupFormData) => {
         try {
-            console.log("Signup data:", data);
-
-            const response = await axios.post(`http://localhost:3001/register`, {
+            const response = await axios.post(`${baseUrl}/register`, {
                 email: data.email, password: data.password,
             }, {withCredentials: true});
 
             console.log(response);
 
             if (response.status === 201) {
-                console.log("Successfully registered!");
                 router.push("/");
             }
         } catch (error) {

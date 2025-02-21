@@ -22,11 +22,15 @@ export default function DashboardLayout({children}: { children: React.ReactNode 
     const [authenticated, setAuthenticated] = useState<boolean>(false);
     const [user, setUser] = useState<User>();
 
+    const baseUrl = process.env.NEXT_PUBLIC_URL_API;
+
     useEffect(() => {
         const requiredAuth = async () => {
             setLoading(true);
             try {
-                const res = await axios.get("http://localhost:3001", {withCredentials: true});
+                const res = await axios.get(`${baseUrl}`, {
+                    withCredentials: true
+                });
 
                 if (res.status === 200) {
                     setAuthenticated(true);
