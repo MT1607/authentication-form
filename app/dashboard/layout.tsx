@@ -53,7 +53,7 @@ export default function DashboardLayout({children}: { children: React.ReactNode 
 
     useEffect(() => {
         const getUser = async () => {
-            await axios.get("http://localhost:3001/user", {withCredentials: true})
+            await axios.get(`${baseUrl}/user`, {withCredentials: true})
                 .then(res => setUser(res.data.user))
                 .catch(err => console.log(err));
         }
