@@ -1,0 +1,12 @@
+version: "3.8"
+
+services:
+  fe:
+    build: .
+    container_name: authentication_form
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+
