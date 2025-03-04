@@ -1,6 +1,6 @@
 import {createAsyncThunk, createSlice} from "@reduxjs/toolkit";
 import s3Client from "@/lib/s3Config";
-import {GetObjectCommand, PutObjectCommand} from "@aws-sdk/client-s3";
+import {PutObjectCommand} from "@aws-sdk/client-s3";
 
 interface s3State {
     avatarUrl: string | null,

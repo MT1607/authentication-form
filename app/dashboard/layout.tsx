@@ -33,7 +33,7 @@ export default function DashboardLayout({children}: { children: React.ReactNode 
                 const res = await axios.get(`${baseUrl}`, {
                     withCredentials: true
                 });
-
+                console.log("res status: ", res.status);
                 if (res.status === 200) {
                     setAuthenticated(true);
                 }
@@ -51,6 +51,7 @@ export default function DashboardLayout({children}: { children: React.ReactNode 
         };
 
         requiredAuth();
+        console.log("authenticated required auth: ", authenticated)
     }, []);
 
     useEffect(() => {
@@ -61,6 +62,7 @@ export default function DashboardLayout({children}: { children: React.ReactNode 
         }
 
         getUser();
+        console.log("authenticated required auth: ", authenticated)
     }, [authenticated]);
 
 

@@ -13,6 +13,7 @@ import {RootState} from "@/store";
 import {getUrlAvatar, uploadAvatar} from "@/store/slices/s3Slice";
 import {Profile} from "@/utils/type";
 import {useAppDispatch} from "@/store/hooks";
+import axios from "axios";
 
 
 const profileSchema = z.object({
@@ -28,6 +29,7 @@ export default function ProfilePage() {
     const {avatarUrl, loading, error, success} = useSelector((state:RootState) => state.s3);
     const [avatarPreview, setAvatarPreview] = useState("/default-avatar.png");
     const [file, setFile] = useState<File | null>();
+    const baseUrl = process.env.NEXT_PUBLIC_URL_API;
 
     const form = useForm({
         resolver: zodResolver(profileSchema),
@@ -67,11 +69,14 @@ export default function ProfilePage() {
         }
     }, [file]);
 
-    // useEffect(() => {
-    //     if (file) {
-    //         dispatch(getUrlAvatar(file.name));
-    //     }
-    // }, [avatarUrl]);
+    useEffect(() => {
+        const getProfile = async () => {
+            await axios.get(`${baseUrl}/profile`,{withCredentials: true})
+                .then(res => console.log("Get profile", res))
+                .catch(error => console.log("error get profile: ", error));
+        }
+        getProfile();
+    }, []);
 
     return (
         <div className="m-6">
@@ -79,7 +84,7 @@ export default function ProfilePage() {
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                     <div className="flex items-center space-x-4">
                         <Avatar className="w-16 h-16">
-                            <AvatarImage src={avatarPreview || avatarName} alt="Avatar" />
+                            <AvatarImage src={avatarPreview || avatarUrl} alt="Avatar" />
                             <AvatarFallback>U</AvatarFallback>
                         </Avatar>
                         <input type="file" accept="image/*" onChange={handleAvatarChange} className="hidden" id="avatar" />
