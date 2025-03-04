@@ -14,6 +14,8 @@ import {useRouter} from "next/navigation";
 import {useEffect, useState} from "react";
 import axios, {AxiosError} from "axios";
 import {User} from "@/utils/type";
+import {Provider} from "react-redux";
+import store from "@/store";
 
 export default function DashboardLayout({children}: { children: React.ReactNode }) {
     const router = useRouter();
@@ -63,7 +65,7 @@ export default function DashboardLayout({children}: { children: React.ReactNode 
 
 
     return (
-        <>
+        <Provider store={store}>
             {authenticated ?
                 <div className="flex min-h-screen">
                     <SidebarProvider>
@@ -91,6 +93,6 @@ export default function DashboardLayout({children}: { children: React.ReactNode 
                         </SidebarInset>
                     </SidebarProvider>
                 </div> : ""}
-        </>
+        </Provider>
     );
 }

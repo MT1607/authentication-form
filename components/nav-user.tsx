@@ -1,6 +1,6 @@
 "use client"
 
-import {BadgeCheck, Bell, ChevronsUpDown, CreditCard, LogOut, Sparkles} from "lucide-react"
+import {User, Bell, ChevronsUpDown, CreditCard, LogOut, Sparkles} from "lucide-react"
 
 import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar"
 import {
@@ -13,6 +13,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import {SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar} from "@/components/ui/sidebar"
+import {useRouter} from "next/navigation";
 
 export function NavUser({user}: {
     user: {
@@ -21,7 +22,8 @@ export function NavUser({user}: {
         avatar: string
     }
 }) {
-    const {isMobile} = useSidebar()
+    const {isMobile} = useSidebar();
+    const router = useRouter();
 
     return (
         <SidebarMenu>
@@ -70,9 +72,9 @@ export function NavUser({user}: {
                         </DropdownMenuGroup>
                         <DropdownMenuSeparator/>
                         <DropdownMenuGroup>
-                            <DropdownMenuItem>
-                                <BadgeCheck/>
-                                Account
+                            <DropdownMenuItem onClick={()=>router.push("/dashboard/profile")}>
+                                <User/>
+                                Profile
                             </DropdownMenuItem>
                             <DropdownMenuItem>
                                 <CreditCard/>
