@@ -10,7 +10,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import {FormField, Form, FormItem, FormLabel, FormControl, FormMessage} from "@/components/ui/form";
 import {useSelector} from "react-redux";
 import {RootState} from "@/store";
-import {getUrlAvatar, uploadAvatar} from "@/store/slices/s3Slice";
+import {uploadAvatar} from "@/store/slices/s3Slice";
 import {Profile} from "@/utils/type";
 import {useAppDispatch} from "@/store/hooks";
 import axios from "axios";
