@@ -48,10 +48,23 @@ export const postLogin = createAsyncThunk(
                 email: value.email,
                 password: value.password
             }, {withCredentials: true});
-            console.log("Res: ", res)
             return res.status;
         } catch (e) {
-            console.log('error api: ', e)
+            return rejectWithValue(e);
+        }
+    }
+)
+
+export const postRegister = createAsyncThunk(
+    'auth/postRegister',
+    async (value: LoginData, {rejectWithValue}) => {
+        try {
+            const res = await axios.post(`${baseUrl}/register`, {
+                email: value.email,
+                password: value.password
+            }, {withCredentials: true})
+            return res.status;
+        } catch (e) {
             return rejectWithValue(e);
         }
     }
@@ -62,6 +75,7 @@ const authSlice = createSlice({
     initialState,
     reducers: {},
     extraReducers: (builder) => {
+        // REQUIRE AUTH
         builder.addCase(requireAuth.pending, (state) => {
             state.loading = true;
             state.success = false;
@@ -76,6 +90,8 @@ const authSlice = createSlice({
             state.error = action.payload as AxiosError;
             state.success = false;
         });
+
+        // GET USER
         builder.addCase(getUser.pending, (state) => {
             state.loading = true;
             state.success = false;
@@ -91,19 +107,34 @@ const authSlice = createSlice({
             state.error = action.payload as AxiosError;
             state.success = false;
         });
+
+        // LOGIN
         builder.addCase(postLogin.pending, (state) => {
-            console.log("action pending: ", state)
             state.loading = true;
             state.success = false;
         });
         builder.addCase(postLogin.fulfilled, (state, action) => {
-            console.log("action fulfilled: ", action, " state: ", state);
             state.loading = false;
             state.status = action.payload as number;
             state.success = true;
         });
         builder.addCase(postLogin.rejected, (state, action) => {
-            console.log("action: ", action.payload)
+            state.loading = false;
+            state.error = action.payload as AxiosError;
+            state.success = false;
+        });
+
+        // REGISTER
+        builder.addCase(postRegister.pending, (state) => {
+            state.loading = true;
+            state.success = false;
+        });
+        builder.addCase(postRegister.fulfilled, (state, action) => {
+            state.loading = false;
+            state.status = action.payload as number;
+            state.success = true;
+        });
+        builder.addCase(postRegister.rejected, (state, action) => {
             state.loading = false;
             state.error = action.payload as AxiosError;
             state.success = false;
