@@ -1,4 +1,4 @@
-import {User} from "@/utils/type";
+import {LoginData, User} from "@/utils/type";
 import axios, {AxiosError} from "axios";
 import {createAsyncThunk, createSlice} from "@reduxjs/toolkit";
 import {authState} from "@/utils/reduxType";
@@ -37,6 +37,24 @@ export const getUser = createAsyncThunk(
             return rejectWithValue(e);
         }
     }
+);
+
+export const postLogin = createAsyncThunk(
+    "auth/postLogin",
+    async (value: LoginData, {rejectWithValue}) => {
+        console.log("value: ", value, "base url: ", baseUrl);
+        try {
+            const res = await axios.post(`${baseUrl}/login`, {
+                email: value.email,
+                password: value.password
+            }, {withCredentials: true});
+            console.log("Res: ", res)
+            return res.status;
+        } catch (e) {
+            console.log('error api: ', e)
+            return rejectWithValue(e);
+        }
+    }
 )
 
 const authSlice = createSlice({
@@ -72,7 +90,24 @@ const authSlice = createSlice({
             state.loading = false;
             state.error = action.payload as AxiosError;
             state.success = false;
-        })
+        });
+        builder.addCase(postLogin.pending, (state) => {
+            console.log("action pending: ", state)
+            state.loading = true;
+            state.success = false;
+        });
+        builder.addCase(postLogin.fulfilled, (state, action) => {
+            console.log("action fulfilled: ", action, " state: ", state);
+            state.loading = false;
+            state.status = action.payload as number;
+            state.success = true;
+        });
+        builder.addCase(postLogin.rejected, (state, action) => {
+            console.log("action: ", action.payload)
+            state.loading = false;
+            state.error = action.payload as AxiosError;
+            state.success = false;
+        });
     }
 });
 

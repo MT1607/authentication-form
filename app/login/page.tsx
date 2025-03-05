@@ -1,34 +1,74 @@
 "use client";
 
-import React from "react";
+import React, {useEffect} from "react";
 import {useForm} from "react-hook-form";
-// Import các component shadcn UI (giả sử chúng được export từ "@/components/ui")
 import {Input} from "@/components/ui/input";
 import {Button} from "@/components/ui/button";
 import {Label} from "@/components/ui/label";
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
-import axios from "axios";
 import {useRouter} from "next/navigation";
 import {useToast} from "@/hooks/use-toast";
 import {Toaster} from "@/components/ui/toaster";
-import {CheckCircleIcon, XCircleIcon} from "lucide-react";
+import {LoginData} from "@/utils/type";
+import {useAppDispatch} from "@/store/hooks";
+import {useSelector} from "react-redux";
+import {RootState} from "@/store";
+import {authState} from "@/utils/reduxType";
+import {postLogin} from "@/store/slices/authSlice";
+import {CheckCircleIcon, Loader2, XCircleIcon} from "lucide-react";
 
-interface LoginFormData {
-    email: string;
-    password: string;
-}
 
 export default function LoginPage() {
     const {toast} = useToast();
-    const baseUrl = process.env.NEXT_PUBLIC_URL_API;
+    const dispath = useAppDispatch();
     const router = useRouter();
-    const {register, handleSubmit, formState: {errors}} = useForm<LoginFormData>();
+    const {register, handleSubmit, formState: {errors}} = useForm<LoginData>();
 
-    const onSubmit = async (data: LoginFormData) => {
-        await axios.post(`${baseUrl}/login`, {
-            email: data.email,
-            password: data.password
-        }, {withCredentials: true}).then(() => {
+    const {error, status, loading} = useSelector((state: RootState) => state.auth as authState);
+
+    useEffect(() => {
+        if (loading) {
+            toast({
+                variant: "default", // Giữ giao diện mặc định
+                description: (
+                    <div className="flex items-center">
+                        <Loader2 className="h-6 w-6 mr-2 animate-spin"/>
+                        Logging...
+                    </div>
+                )
+            })
+        }
+        if (error?.status === 400) {
+            switch (error?.response?.data) {
+                case "Email incorrect":
+                    toast({
+                        variant: "destructive",
+                        description: (
+                            <div>
+                                <span><XCircleIcon className="h-6 w-6 mr-2 text-white-500 inline"/></span>
+                                {error.response.data}
+                            </div>
+                        )
+                    })
+                    break;
+                case "Password incorrect":
+                    toast({
+                        variant: "destructive",
+                        description: (
+                            <div>
+                                <span><XCircleIcon className="h-6 w-6 mr-2 text-white-500 inline"/></span>
+                                {error.response.data}
+                            </div>
+                        )
+                    })
+                    break;
+                default:
+                    break;
+            }
+
+        }
+
+        if (status === 200) {
             toast({
                 variant: "default",
                 className: "border border-green-500 bg-green-100 text-green-700",
@@ -40,38 +80,11 @@ export default function LoginPage() {
                 )
             })
             router.push("/");
-        }).catch(err => {
-            console.log(err.response.data);
-            if (err.status === 400) {
-                switch (err.response.data) {
-                    case "Email incorrect":
-                        console.log("Email incorrect");
-                        toast({
-                            variant: "destructive",
-                            description: (
-                                <div>
-                                    <span><XCircleIcon className="h-6 w-6 mr-2 text-white-500 inline"/></span>
-                                    {err.response.data}
-                                </div>
-                            )
-                        })
-                        break;
-                    case "Password incorrect":
-                        toast({
-                            variant: "destructive",
-                            description: (
-                                <div>
-                                    <span><XCircleIcon className="h-6 w-6 mr-2 text-white-500 inline"/></span>
-                                    {err.response.data}
-                                </div>
-                            )
-                        })
-                        break;
-                    default:
-                        break;
-                }
-            }
-        });
+        }
+    }, [loading]);
+
+    const onSubmit = async (data: LoginData) => {
+        dispath(postLogin(data));
     };
 
     return (

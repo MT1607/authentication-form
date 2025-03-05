@@ -9,4 +9,7 @@ export interface Profile {
     dateOfBirth: string | undefined;
 }
 
-
+export interface LoginData {
+    email: string;
+    password: string;
+}

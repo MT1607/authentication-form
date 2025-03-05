@@ -16,4 +16,4 @@ export interface s3State {
     loading: boolean,
     error: string | null,
     success: boolean,
-}
+}       

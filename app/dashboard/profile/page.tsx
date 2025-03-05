@@ -26,7 +26,6 @@ const profileSchema = z.object({
 
 export default function ProfilePage() {
     const dispatch = useAppDispatch();
-    // "@ts-expect-error"
     const {avatarUrl, loading, error, success} = useSelector((state: RootState) => state.s3 as s3State);
     const [avatarPreview, setAvatarPreview] = useState("/default-avatar.png");
     const [file, setFile] = useState<File | null>();
