@@ -1,13 +1,7 @@
 import {createAsyncThunk, createSlice} from "@reduxjs/toolkit";
 import s3Client from "@/lib/s3Config";
 import {PutObjectCommand} from "@aws-sdk/client-s3";
-
-interface s3State {
-    avatarUrl: string | null,
-    loading: boolean,
-    error: string | null,
-    success: boolean,
-}
+import {s3State} from "@/utils/reduxType";
 
 const initialState: s3State = {
     avatarUrl: null,

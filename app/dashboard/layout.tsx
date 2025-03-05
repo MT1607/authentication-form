@@ -14,8 +14,9 @@ import {useRouter} from "next/navigation";
 import {useEffect, useState} from "react";
 import {useSelector} from "react-redux";
 import {useAppDispatch} from "@/store/hooks";
-import {authState, getUser, requireAuth} from "@/store/slices/authSlice";
+import {getUser, requireAuth} from "@/store/slices/authSlice";
 import {RootState} from "@/store";
+import {authState} from "@/utils/reduxType";
 
 export default function DashboardLayout({children}: { children: React.ReactNode }) {
     const router = useRouter();

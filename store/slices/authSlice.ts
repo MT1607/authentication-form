@@ -1,14 +1,8 @@
 import {User} from "@/utils/type";
 import axios, {AxiosError} from "axios";
 import {createAsyncThunk, createSlice} from "@reduxjs/toolkit";
+import {authState} from "@/utils/reduxType";
 
-export interface authState {
-    data: User | null,
-    error: AxiosError | null,
-    success: boolean,
-    loading: boolean,
-    status: number | null,
-}
 
 const initialState: authState = {
     data: null,

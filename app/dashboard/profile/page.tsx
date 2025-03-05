@@ -1,19 +1,20 @@
 "use client";
 
-import { useForm } from "react-hook-form";
+import {useForm} from "react-hook-form";
 import * as z from "zod";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import {Button} from "@/components/ui/button";
+import {Input} from "@/components/ui/input";
+import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar";
 import {useEffect, useState} from "react";
-import { zodResolver } from "@hookform/resolvers/zod";
-import {FormField, Form, FormItem, FormLabel, FormControl, FormMessage} from "@/components/ui/form";
+import {zodResolver} from "@hookform/resolvers/zod";
+import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form";
 import {useSelector} from "react-redux";
 import {RootState} from "@/store";
 import {uploadAvatar} from "@/store/slices/s3Slice";
 import {Profile} from "@/utils/type";
 import {useAppDispatch} from "@/store/hooks";
 import axios from "axios";
+import {s3State} from "@/utils/reduxType";
 
 
 const profileSchema = z.object({
@@ -26,7 +27,7 @@ const profileSchema = z.object({
 export default function ProfilePage() {
     const dispatch = useAppDispatch();
     // "@ts-expect-error"
-    const {avatarUrl, loading, error, success} = useSelector((state:RootState) => state.s3);
+    const {avatarUrl, loading, error, success} = useSelector((state: RootState) => state.s3 as s3State);
     const [avatarPreview, setAvatarPreview] = useState("/default-avatar.png");
     const [file, setFile] = useState<File | null>();
     const baseUrl = process.env.NEXT_PUBLIC_URL_API;
@@ -45,10 +46,10 @@ export default function ProfilePage() {
         console.log("Updated Profile:", data, "avatar: ", data.avatar);
         if (file) {
             dispatch(uploadAvatar(file));
-            console.log("error: ", error, "avatar: ", avatarUrl, "success: ", success, "loading: ", loading );
+            console.log("error: ", error, "avatar: ", avatarUrl, "success: ", success, "loading: ", loading);
             if (error) {
                 console.log("Error:", error);
-            };
+            }
             if (success) {
                 console.log("Upload success: ", avatarUrl, success);
             }
@@ -71,7 +72,7 @@ export default function ProfilePage() {
 
     useEffect(() => {
         const getProfile = async () => {
-            await axios.get(`${baseUrl}/profile`,{withCredentials: true})
+            await axios.get(`${baseUrl}/profile`, {withCredentials: true})
                 .then(res => console.log("Get profile", res))
                 .catch(error => console.log("error get profile: ", error));
         }
@@ -84,42 +85,44 @@ export default function ProfilePage() {
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                     <div className="flex items-center space-x-4">
                         <Avatar className="w-16 h-16">
-                            <AvatarImage src={avatarPreview || avatarUrl} alt="Avatar" />
+                            <AvatarImage src={avatarPreview || avatarUrl} alt="Avatar"/>
                             <AvatarFallback>U</AvatarFallback>
                         </Avatar>
-                        <input type="file" accept="image/*" onChange={handleAvatarChange} className="hidden" id="avatar" />
-                        <label htmlFor="avatar" className="cursor-pointer bg-gray-200 px-3 py-1 rounded-md">Change Avatar</label>
+                        <input type="file" accept="image/*" onChange={handleAvatarChange} className="hidden"
+                               id="avatar"/>
+                        <label htmlFor="avatar" className="cursor-pointer bg-gray-200 px-3 py-1 rounded-md">Change
+                            Avatar</label>
                     </div>
 
-                    <FormField control={form.control} name="firstName" render={({ field }) => (
+                    <FormField control={form.control} name="firstName" render={({field}) => (
                         <FormItem>
                             <FormLabel>First Name</FormLabel>
                             <FormControl>
                                 <Input {...field} />
                             </FormControl>
-                            <FormMessage />
+                            <FormMessage/>
                         </FormItem>
-                    )} />
+                    )}/>
 
-                    <FormField control={form.control} name="lastName" render={({ field }) => (
+                    <FormField control={form.control} name="lastName" render={({field}) => (
                         <FormItem>
                             <FormLabel>Last Name</FormLabel>
                             <FormControl>
                                 <Input {...field} />
                             </FormControl>
-                            <FormMessage />
+                            <FormMessage/>
                         </FormItem>
-                    )} />
+                    )}/>
 
-                    <FormField control={form.control} name="dateOfBirth" render={({ field }) => (
+                    <FormField control={form.control} name="dateOfBirth" render={({field}) => (
                         <FormItem>
                             <FormLabel>Date of Birth</FormLabel>
                             <FormControl>
                                 <Input type="date" {...field} />
                             </FormControl>
-                            <FormMessage />
+                            <FormMessage/>
                         </FormItem>
-                    )} />
+                    )}/>
 
                     <Button type="submit">Update Profile</Button>
                 </form>
