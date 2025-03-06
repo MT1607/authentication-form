@@ -11,7 +11,6 @@ import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/
 import {useSelector} from "react-redux";
 import {RootState} from "@/store";
 import {uploadAvatar} from "@/store/slices/s3Slice";
-import {Profile} from "@/utils/type";
 import {useAppDispatch} from "@/store/hooks";
 import axios from "axios";
 import {s3State} from "@/utils/reduxType";
@@ -26,7 +25,7 @@ const profileSchema = z.object({
 
 export default function ProfilePage() {
     const dispatch = useAppDispatch();
-    const {avatarUrl, loading, error, success} = useSelector((state: RootState) => state.s3 as s3State);
+    const {avatarUrl, error, success} = useSelector((state: RootState) => state.s3 as s3State);
     const [avatarPreview, setAvatarPreview] = useState("/default-avatar.png");
     const [file, setFile] = useState<File | null>();
     const baseUrl = process.env.NEXT_PUBLIC_URL_API;
@@ -41,11 +40,9 @@ export default function ProfilePage() {
         },
     });
 
-    const onSubmit = (data: Profile) => {
-        console.log("Updated Profile:", data, "avatar: ", data.avatar);
+    const onSubmit = () => {
         if (file) {
             dispatch(uploadAvatar(file));
-            console.log("error: ", error, "avatar: ", avatarUrl, "success: ", success, "loading: ", loading);
             if (error) {
                 console.log("Error:", error);
             }
@@ -84,7 +81,7 @@ export default function ProfilePage() {
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                     <div className="flex items-center space-x-4">
                         <Avatar className="w-16 h-16">
-                            <AvatarImage src={avatarPreview || avatarUrl} alt="Avatar"/>
+                            <AvatarImage src={avatarPreview || avatarUrl || ""} alt="Avatar"/>
                             <AvatarFallback>U</AvatarFallback>
                         </Avatar>
                         <input type="file" accept="image/*" onChange={handleAvatarChange} className="hidden"
