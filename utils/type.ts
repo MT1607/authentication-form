@@ -5,10 +5,10 @@ export interface User {
 }
 
 export interface Profile {
-    avatar?: string | undefined;
-    firstName: string | undefined;
-    lastName: string | undefined;
-    dateOfBirth: string | undefined;
+    avatar_url?: string | undefined;
+    first_name: string | undefined;
+    last_name: string | undefined;
+    date_of_birth: string | undefined;
 }
 
 export interface LoginForm {

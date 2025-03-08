@@ -1,6 +1,6 @@
 "use client"
 
-import {User, Bell, ChevronsUpDown, CreditCard, LogOut, Sparkles} from "lucide-react"
+import {Bell, ChevronsUpDown, CreditCard, LogOut, Sparkles, User} from "lucide-react"
 
 import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar"
 import {
@@ -24,7 +24,6 @@ export function NavUser({user}: {
 }) {
     const {isMobile} = useSidebar();
     const router = useRouter();
-
     return (
         <SidebarMenu>
             <SidebarMenuItem>
@@ -72,7 +71,7 @@ export function NavUser({user}: {
                         </DropdownMenuGroup>
                         <DropdownMenuSeparator/>
                         <DropdownMenuGroup>
-                            <DropdownMenuItem onClick={()=>router.push("/dashboard/profile")}>
+                            <DropdownMenuItem onClick={() => router.push("/dashboard/profile")}>
                                 <User/>
                                 Profile
                             </DropdownMenuItem>

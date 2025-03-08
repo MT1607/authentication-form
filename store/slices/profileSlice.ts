@@ -26,10 +26,10 @@ export const updateProfile = createAsyncThunk(
     async (value: Profile, {rejectWithValue}) => {
         try {
             const res = await axios.put(`${baseUrl}/profile`, {
-                firstName: value.firstName,
-                lastName: value.lastName,
-                avatarUrl: value.avatar,
-                dateOfBirth: value.dateOfBirth
+                firstName: value.first_name,
+                lastName: value.last_name,
+                avatarUrl: value.avatar_url,
+                dateOfBirth: value.date_of_birth
             }, {withCredentials: true});
             return {response: {message: res.data.message, data: res.data.profile || null}, status: res.status};
         } catch (e) {

@@ -20,10 +20,10 @@ import {Toaster} from "@/components/ui/toaster";
 import {updateProfile} from "@/store/slices/profileSlice";
 
 const profileSchema = z.object({
-    avatar: z.string().optional(),
-    firstName: z.string().min(1, "First name is required"),
-    lastName: z.string().min(1, "Last name is required"),
-    dateOfBirth: z.string().min(1, "Date of birth is required"),
+    avatar_url: z.string().optional(),
+    first_name: z.string().min(1, "First name is required"),
+    last_name: z.string().min(1, "Last name is required"),
+    date_of_birth: z.string().min(1, "Date of birth is required"),
 });
 
 export default function ProfilePage() {
@@ -43,10 +43,10 @@ export default function ProfilePage() {
     const form = useForm<z.infer<typeof profileSchema>>({ // change here
         resolver: zodResolver(profileSchema),
         defaultValues: {
-            avatar: "",
-            firstName: "",
-            lastName: "",
-            dateOfBirth: "",
+            avatar_url: "",
+            first_name: "",
+            last_name: "",
+            date_of_birth: "",
         },
     });
 
@@ -55,7 +55,7 @@ export default function ProfilePage() {
             setProfile(data);
             dispatch(uploadAvatar(file));
         } else {
-            dispatch(updateProfile({...data, avatar: ""}))
+            dispatch(updateProfile({...data, avatar_url: ""}))
         }
     };
 
@@ -69,18 +69,9 @@ export default function ProfilePage() {
         if (file) {
             const imageUrl = URL.createObjectURL(file);
             setAvatarPreview(imageUrl);
-            form.setValue("avatar", imageUrl);
+            form.setValue("avatar_url", imageUrl);
         }
     }, [file]);
-
-    // useEffect(() => {
-    //     const getProfile = async () => {
-    //         await axios.get(`${baseUrl}/profile`, {withCredentials: true})
-    //             .then(res => console.log("Get profile", res))
-    //             .catch(error => console.log("error get profile: ", error));
-    //     }
-    //     getProfile();
-    // }, []);
 
     useEffect(() => {
         if (error) {
@@ -96,7 +87,7 @@ export default function ProfilePage() {
         }
         if (success) {
             if (profile) {
-                dispatch(updateProfile({...profile, avatar: avatarUrl || ""}));
+                dispatch(updateProfile({...profile, avatar_url: avatarUrl || ""}));
             }
         }
     }, [error, success]);
@@ -138,7 +129,7 @@ export default function ProfilePage() {
                 )
             })
         }
-    }, [profileResponse, profileResponse, profileError]);
+    }, [profileResponse, profileLoading, profileError]);
 
     return (
         <div className="m-6">
@@ -155,7 +146,7 @@ export default function ProfilePage() {
                             Avatar</label>
                     </div>
 
-                    <FormField control={form.control} name="firstName" render={({field}) => (
+                    <FormField control={form.control} name="first_name" render={({field}) => (
                         <FormItem>
                             <FormLabel>First Name</FormLabel>
                             <FormControl>
@@ -165,7 +156,7 @@ export default function ProfilePage() {
                         </FormItem>
                     )}/>
 
-                    <FormField control={form.control} name="lastName" render={({field}) => (
+                    <FormField control={form.control} name="last_name" render={({field}) => (
                         <FormItem>
                             <FormLabel>Last Name</FormLabel>
                             <FormControl>
@@ -175,7 +166,7 @@ export default function ProfilePage() {
                         </FormItem>
                     )}/>
 
-                    <FormField control={form.control} name="dateOfBirth" render={({field}) => (
+                    <FormField control={form.control} name="date_of_birth" render={({field}) => (
                         <FormItem>
                             <FormLabel>Date of Birth</FormLabel>
                             <FormControl>

@@ -16,9 +16,10 @@ import {
 
 import {NavMain} from "./nav-main"
 import {NavProjects} from "./nav-projects"
-import {NavUser} from "./nav-user"
 import {TeamSwitcher} from "./team-switcher"
 import {Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarRail} from "@/components/ui/sidebar"
+import {Profile} from "@/utils/type";
+import {NavUser} from "@/components/nav-user";
 
 // This is sample data.
 const data = {
@@ -150,7 +151,11 @@ const data = {
     ],
 }
 
-export function AppSidebar({email, ...props}: { email: string } & React.ComponentProps<typeof Sidebar>) {
+export function AppSidebar({email, profile, ...props}: {
+    email: string,
+    profile: Profile | null,
+} & React.ComponentProps<typeof Sidebar>) {
+
     return (
         <Sidebar collapsible="icon" {...props}>
             <SidebarHeader>
@@ -161,7 +166,14 @@ export function AppSidebar({email, ...props}: { email: string } & React.Componen
                 <NavProjects projects={data.projects}/>
             </SidebarContent>
             <SidebarFooter>
-                <NavUser user={{...data.user, name: email, email: email}}/>
+                {
+                    profile != undefined ?
+                        <NavUser user={{
+                            ...data.user,
+                            name: `${profile.first_name} ${profile.last_name}`,
+                            email: email
+                        }}/> : `${profile}`
+                }
             </SidebarFooter>
             <SidebarRail/>
         </Sidebar>

@@ -16,14 +16,21 @@ import {useSelector} from "react-redux";
 import {useAppDispatch} from "@/store/hooks";
 import {getUser, requireAuth} from "@/store/slices/authSlice";
 import {RootState} from "@/store";
-import {reduxType, User} from "@/utils/type";
+import {Profile, reduxType, User} from "@/utils/type";
+import {getProfile} from "@/store/slices/profileSlice";
 
 export default function DashboardLayout({children}: { children: React.ReactNode }) {
     const router = useRouter();
     const dispath = useAppDispatch();
     const {response, loading, error} = useSelector((state: RootState) => state.auth as reduxType<User>);
+    const {
+        error: profileError,
+        loading: profileLoading,
+        response: profileResponse,
+    } = useSelector((state: RootState) => state.profile as reduxType<Profile>);
     const [authenticated, setAuthenticated] = useState<boolean>(false);
     const [user, setUser] = useState<User>();
+    const [profile, setProfile] = useState<Profile>();
 
     useEffect(() => {
         dispath(requireAuth());
@@ -32,6 +39,12 @@ export default function DashboardLayout({children}: { children: React.ReactNode 
     useEffect(() => {
         dispath(getUser());
     }, [authenticated]);
+
+    useEffect(() => {
+        if (user) {
+            dispath(getProfile());
+        }
+    }, [user]);
 
     useEffect(() => {
         if (response?.status === 200 && response) {
@@ -47,12 +60,27 @@ export default function DashboardLayout({children}: { children: React.ReactNode 
         }
     }, [error, loading, response]);
 
+    useEffect(() => {
+        if (profileError) {
+            console.log("profile error", profileError);
+        }
+
+        if (profileResponse?.status === 200) {
+            console.log("profile response", profileResponse);
+            setProfile(profileResponse.response.data);
+        }
+
+        if (profileLoading) {
+            console.log("profile loading", profileLoading);
+        }
+    }, [profileResponse, profileError, profileLoading]);
+
     return (
         <>
-            {authenticated ?
+            {authenticated && profile != null ?
                 <div className="flex min-h-screen">
                     <SidebarProvider>
-                        <AppSidebar email={user?.email || ""}/>
+                        <AppSidebar email={user?.email || ""} profile={profile || null}/>
                         <SidebarInset>
                             <header
                                 className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
