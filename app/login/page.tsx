@@ -9,11 +9,10 @@ import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
 import {useRouter} from "next/navigation";
 import {useToast} from "@/hooks/use-toast";
 import {Toaster} from "@/components/ui/toaster";
-import {LoginData} from "@/utils/type";
+import {LoginForm, reduxType, User} from "@/utils/type";
 import {useAppDispatch} from "@/store/hooks";
 import {useSelector} from "react-redux";
 import {RootState} from "@/store";
-import {authState} from "@/utils/reduxType";
 import {postLogin} from "@/store/slices/authSlice";
 import {CheckCircleIcon, Loader2, XCircleIcon} from "lucide-react";
 
@@ -22,11 +21,12 @@ export default function LoginPage() {
     const {toast} = useToast();
     const dispath = useAppDispatch();
     const router = useRouter();
-    const {register, handleSubmit, formState: {errors}} = useForm<LoginData>();
+    const {register, handleSubmit, formState: {errors}} = useForm<LoginForm>();
 
-    const {error, status, loading} = useSelector((state: RootState) => state.auth as authState);
+    const {error, response, loading} = useSelector((state: RootState) => state.auth as reduxType<User>);
 
     useEffect(() => {
+        console.log("Data: ", response);
         if (loading) {
             toast({
                 variant: "default", // Giữ giao diện mặc định
@@ -68,7 +68,7 @@ export default function LoginPage() {
 
         }
 
-        if (status === 200) {
+        if (response?.status === 200) {
             toast({
                 variant: "default",
                 className: "border border-green-500 bg-green-100 text-green-700",
@@ -81,9 +81,9 @@ export default function LoginPage() {
             })
             router.push("/");
         }
-    }, [loading]);
+    }, [loading, response, error]);
 
-    const onSubmit = async (data: LoginData) => {
+    const onSubmit = async (data: LoginForm) => {
         dispath(postLogin(data));
     };
 

@@ -16,13 +16,14 @@ import {useSelector} from "react-redux";
 import {useAppDispatch} from "@/store/hooks";
 import {getUser, requireAuth} from "@/store/slices/authSlice";
 import {RootState} from "@/store";
-import {authState} from "@/utils/reduxType";
+import {reduxType, User} from "@/utils/type";
 
 export default function DashboardLayout({children}: { children: React.ReactNode }) {
     const router = useRouter();
     const dispath = useAppDispatch();
-    const {status, data, loading, error} = useSelector((state: RootState) => state.auth as authState);
+    const {response, loading, error} = useSelector((state: RootState) => state.auth as reduxType<User>);
     const [authenticated, setAuthenticated] = useState<boolean>(false);
+    const [user, setUser] = useState<User>();
 
     useEffect(() => {
         dispath(requireAuth());
@@ -33,23 +34,25 @@ export default function DashboardLayout({children}: { children: React.ReactNode 
     }, [authenticated]);
 
     useEffect(() => {
-        if (status === 200) {
-            return setAuthenticated(true);
+        if (response?.status === 200 && response) {
+            setUser(response.response?.data);
+            setAuthenticated(true);
+            return;
         }
 
-        if (error?.response?.status === 401) {
+        if (error?.response?.status === 402) {
             return router.push("/login");
         } else {
             return;
         }
-    }, [error, status, loading]);
+    }, [error, loading, response]);
 
     return (
         <>
             {authenticated ?
                 <div className="flex min-h-screen">
                     <SidebarProvider>
-                        <AppSidebar email={data?.email || ""}/>
+                        <AppSidebar email={user?.email || ""}/>
                         <SidebarInset>
                             <header
                                 className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
