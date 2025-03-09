@@ -24,7 +24,6 @@ export default function DashboardLayout({children}: { children: React.ReactNode 
     const dispath = useAppDispatch();
     const {response, loading, error} = useSelector((state: RootState) => state.auth as reduxType<User>);
     const {
-        error: profileError,
         loading: profileLoading,
         response: profileResponse,
     } = useSelector((state: RootState) => state.profile as reduxType<Profile>);
@@ -61,19 +60,10 @@ export default function DashboardLayout({children}: { children: React.ReactNode 
     }, [error, loading, response]);
 
     useEffect(() => {
-        if (profileError) {
-            console.log("profile error", profileError);
-        }
-
         if (profileResponse?.status === 200) {
-            console.log("profile response", profileResponse);
             setProfile(profileResponse.response.data);
         }
-
-        if (profileLoading) {
-            console.log("profile loading", profileLoading);
-        }
-    }, [profileResponse, profileError, profileLoading]);
+    }, [profileLoading]);
 
     return (
         <>

@@ -1,5 +1,5 @@
-import {LoginForm, reduxType, User} from "@/utils/type";
-import axios, {AxiosError} from "axios";
+import {LoginForm, OverideAxios, reduxType, User} from "@/utils/type";
+import axios from "axios";
 import {createAsyncThunk, createSlice} from "@reduxjs/toolkit";
 
 const initialState: reduxType<User> = {
@@ -82,7 +82,7 @@ const authSlice = createSlice({
         })
         builder.addCase(requireAuth.rejected, (state, action) => {
             state.loading = false;
-            state.error = action.payload as AxiosError;
+            state.error = action.payload as OverideAxios;
             state.response = null;
         });
 
@@ -99,7 +99,7 @@ const authSlice = createSlice({
         });
         builder.addCase(getUser.rejected, (state, action) => {
             state.loading = false;
-            state.error = action.payload as AxiosError;
+            state.error = action.payload as OverideAxios;
             state.response = null;
         });
 
@@ -116,7 +116,7 @@ const authSlice = createSlice({
         });
         builder.addCase(postLogin.rejected, (state, action) => {
             state.loading = false;
-            state.error = action.payload as AxiosError;
+            state.error = action.payload as OverideAxios;
             state.response = null;
         });
 
@@ -133,7 +133,7 @@ const authSlice = createSlice({
         });
         builder.addCase(postRegister.rejected, (state, action) => {
             state.loading = false;
-            state.error = action.payload as AxiosError;
+            state.error = action.payload as OverideAxios;
             state.response = null;
         });
     }

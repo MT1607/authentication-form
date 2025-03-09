@@ -1,6 +1,6 @@
-import {Profile, reduxType} from "@/utils/type";
+import {OverideAxios, Profile, reduxType} from "@/utils/type";
 import {createAsyncThunk, createSlice} from "@reduxjs/toolkit";
-import axios, {AxiosError} from "axios";
+import axios from "axios";
 
 const initialState: reduxType<Profile> = {
     response: null,
@@ -55,7 +55,7 @@ const profileSlice = createSlice({
         });
         builder.addCase(getProfile.rejected, (state, action) => {
             state.loading = false;
-            state.error = action.payload as AxiosError;
+            state.error = action.payload as OverideAxios;
             state.response = null;
         });
 
@@ -72,7 +72,7 @@ const profileSlice = createSlice({
         });
         builder.addCase(updateProfile.rejected, (state, action) => {
             state.loading = false;
-            state.error = action.payload as AxiosError;
+            state.error = action.payload as OverideAxios;
             state.response = null;
         });
     }

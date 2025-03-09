@@ -7,18 +7,16 @@ import {Button} from "@/components/ui/button";
 import {Label} from "@/components/ui/label";
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
 import {useRouter} from "next/navigation";
-import {useToast} from "@/hooks/use-toast";
 import {Toaster} from "@/components/ui/toaster";
 import {LoginForm, reduxType, User} from "@/utils/type";
 import {useAppDispatch} from "@/store/hooks";
 import {useSelector} from "react-redux";
 import {RootState} from "@/store";
 import {postLogin} from "@/store/slices/authSlice";
-import {CheckCircleIcon, Loader2, XCircleIcon} from "lucide-react";
+import CustomToast from "@/components/custom-toast";
 
 
 export default function LoginPage() {
-    const {toast} = useToast();
     const dispath = useAppDispatch();
     const router = useRouter();
     const {register, handleSubmit, formState: {errors}} = useForm<LoginForm>();
@@ -26,62 +24,18 @@ export default function LoginPage() {
     const {error, response, loading} = useSelector((state: RootState) => state.auth as reduxType<User>);
 
     useEffect(() => {
-        console.log("Data: ", response);
         if (loading) {
-            toast({
-                variant: "default", // Giữ giao diện mặc định
-                description: (
-                    <div className="flex items-center">
-                        <Loader2 className="h-6 w-6 mr-2 animate-spin"/>
-                        Logging...
-                    </div>
-                )
-            })
+            CustomToast({type: {type: "loading", message: "Logging..."}})
         }
         if (error?.status === 400) {
-            switch (error?.response?.data) {
-                case "Email incorrect":
-                    toast({
-                        variant: "destructive",
-                        description: (
-                            <div>
-                                <span><XCircleIcon className="h-6 w-6 mr-2 text-white-500 inline"/></span>
-                                {error.response.data}
-                            </div>
-                        )
-                    })
-                    break;
-                case "Password incorrect":
-                    toast({
-                        variant: "destructive",
-                        description: (
-                            <div>
-                                <span><XCircleIcon className="h-6 w-6 mr-2 text-white-500 inline"/></span>
-                                {error.response.data}
-                            </div>
-                        )
-                    })
-                    break;
-                default:
-                    break;
-            }
-
+            CustomToast({type: {type: "error", message: error?.response?.data?.message || ""}})
         }
 
         if (response?.status === 200) {
-            toast({
-                variant: "default",
-                className: "border border-green-500 bg-green-100 text-green-700",
-                description: (
-                    <div>
-                        <span><CheckCircleIcon className="h-6 w-6 mr-2 text-white-500 inline"/></span>
-                        Login successfully.
-                    </div>
-                )
-            })
+            CustomToast({type: {type: "success", message: "Login successfully"}})
             router.push("/");
         }
-    }, [loading, response, error]);
+    }, [loading]);
 
     const onSubmit = async (data: LoginForm) => {
         dispath(postLogin(data));

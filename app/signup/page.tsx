@@ -8,13 +8,12 @@ import {Label} from "@/components/ui/label";
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
 import {useRouter} from "next/navigation";
 import {Toaster} from "@/components/ui/toaster";
-import {useToast} from "@/hooks/use-toast";
 import {useAppDispatch} from "@/store/hooks";
 import {postRegister} from "@/store/slices/authSlice";
-import {CheckCircleIcon, Loader2, XCircleIcon} from "lucide-react";
 import {useSelector} from "react-redux";
 import {RootState} from "@/store";
-import {authState} from "@/utils/reduxType";
+import CustomToast from "@/components/custom-toast";
+import {reduxType, User} from "@/utils/type";
 
 interface SignupFormData {
     email: string;
@@ -23,9 +22,8 @@ interface SignupFormData {
 }
 
 export default function SignupPage() {
-    const {toast} = useToast();
     const dispath = useAppDispatch();
-    const {error, status, loading} = useSelector((state: RootState) => state.auth as authState);
+    const {error, response, loading} = useSelector((state: RootState) => state.auth as reduxType<User>);
 
     const router = useRouter();
     const {
@@ -37,77 +35,21 @@ export default function SignupPage() {
 
     useEffect(() => {
         if (loading) {
-            toast({
-                variant: "default",
-                description: (
-                    <div className="flex items-center">
-                        <Loader2 className="h-6 w-6 mr-2 animate-spin"/>
-                        Logging...
-                    </div>
-                )
-            })
+            CustomToast({type: {type: "loading", message: "Logging..."}})
         }
 
-        if (status === 200) {
-            toast({
-                variant: "default",
-                className: "border border-green-500 bg-green-100 text-green-700",
-                description: (
-                    <div>
-                        <span><CheckCircleIcon className="h-6 w-6 mr-2 text-white-500 inline"/></span>
-                        Register successfully.
-                    </div>
-                )
-            })
+        if (response?.status === 200) {
+            CustomToast({type: {type: "success", message: "Register successfully"}})
             router.push("/");
         }
 
         if (error?.status === 400) {
-            toast({
-                variant: "destructive",
-                description: (
-                    <div>
-                        <span><XCircleIcon className="h-6 w-6 mr-2 text-white-500 inline"/></span>
-                        {String(error?.response?.data || "Unknown error")}
-                    </div>
-                )
-            })
+            CustomToast({type: {type: "error", message: error?.response?.data?.message || ""}})
         }
-    }, [loading, error, status]);
+    }, [loading]);
 
     const onSubmit = async (data: SignupFormData) => {
-        dispath(postRegister(data))
-        // try {
-        //         const response = await axios.post(`${baseUrl}/register`, {
-        //             email: data.email, password: data.password,
-        //         }, {withCredentials: true});
-        //
-        //         console.log(response);
-        //
-        //         if (response.status === 200) {
-        //             toast({
-        //                 variant: "default",
-        //                 className: "border border-green-500 bg-green-100 text-green-700",
-        //                 description: (
-        //                     <div>
-        //                         <span><CheckCircleIcon className="h-6 w-6 mr-2 text-white-500 inline"/></span>
-        //                         Register successfully.
-        //                     </div>
-        //                 )
-        //             })
-        //             router.push("/");
-        //         }
-        //     } catch (error) {
-        //         toast({
-        //             variant: "destructive",
-        //             description: (
-        //                 <div>
-        //                     <span><XCircleIcon className="h-6 w-6 mr-2 text-white-500 inline"/></span>
-        //                     {error.response.data}
-        //                 </div>
-        //             )
-        //         })
-        //     }
+        dispath(postRegister(data));
     };
 
     const password = watch("password");

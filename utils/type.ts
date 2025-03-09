@@ -16,6 +16,13 @@ export interface LoginForm {
     password: string;
 }
 
+// export type OverideAxios<T = ErrorResponse> = AxiosError<T>
+
+export interface OverideAxios<T = unknown> extends AxiosError<T> {
+    response?: AxiosError<T>["response"] & {
+        data?: T & { message?: string } // Thêm message vào response.data
+    };
+}
 
 export interface ApiResponse<T extends object> {
     status: number,
@@ -27,10 +34,7 @@ export interface ApiResponse<T extends object> {
 
 export interface reduxType<T extends object> {
     response: ApiResponse<T> | null;
-    error: AxiosError | null;
+    error: OverideAxios | null;
     loading: boolean;
 }
 
-export interface ErrorResponse {
-    message: string;
-}
