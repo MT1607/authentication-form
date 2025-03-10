@@ -18,6 +18,7 @@ import {getUser, requireAuth} from "@/store/slices/authSlice";
 import {RootState} from "@/store";
 import {Profile, reduxType, User} from "@/utils/type";
 import {getProfile} from "@/store/slices/profileSlice";
+import CustomToast from "@/components/custom-toast";
 
 export default function DashboardLayout({children}: { children: React.ReactNode }) {
     const router = useRouter();
@@ -25,8 +26,9 @@ export default function DashboardLayout({children}: { children: React.ReactNode 
     const {response, loading, error} = useSelector((state: RootState) => state.auth as reduxType<User>);
     const {
         loading: profileLoading,
-        response: profileResponse,
-    } = useSelector((state: RootState) => state.profile as reduxType<Profile>);
+        getProfileRes: profileResponse,
+        error: profileError,
+    } = useSelector((state: RootState) => state.profile);
     const [authenticated, setAuthenticated] = useState<boolean>(false);
     const [user, setUser] = useState<User>();
     const [profile, setProfile] = useState<Profile>();
@@ -63,11 +65,15 @@ export default function DashboardLayout({children}: { children: React.ReactNode 
         if (profileResponse?.status === 200) {
             setProfile(profileResponse.response.data);
         }
-    }, [profileLoading]);
+
+        if (profileError) {
+            CustomToast({type: {type: "error", message: profileError.message}});
+        }
+    }, [profileLoading, profileResponse, profileError]);
 
     return (
         <>
-            {authenticated && profile != null ?
+            {authenticated ?
                 <div className="flex min-h-screen">
                     <SidebarProvider>
                         <AppSidebar email={user?.email || ""} profile={profile || null}/>

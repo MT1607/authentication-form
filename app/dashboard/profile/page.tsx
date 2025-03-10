@@ -13,11 +13,10 @@ import {RootState} from "@/store";
 import {uploadAvatar} from "@/store/slices/s3Slice";
 import {useAppDispatch} from "@/store/hooks";
 import {s3State} from "@/utils/reduxType";
-import {ErrorResponse, Profile, reduxType} from "@/utils/type";
-import {useToast} from "@/hooks/use-toast";
-import {CheckCircleIcon, Loader2, XCircleIcon} from "lucide-react";
+import {Profile} from "@/utils/type";
 import {Toaster} from "@/components/ui/toaster";
 import {updateProfile} from "@/store/slices/profileSlice";
+import CustomToast from "@/components/custom-toast";
 
 const profileSchema = z.object({
     avatar_url: z.string().optional(),
@@ -28,14 +27,13 @@ const profileSchema = z.object({
 
 export default function ProfilePage() {
     const dispatch = useAppDispatch();
-    const {toast} = useToast();
 
     const {avatarUrl, error, success} = useSelector((state: RootState) => state.s3 as s3State);
     const {
         error: profileError,
-        loading: profileLoading,
-        response: profileResponse,
-    } = useSelector((state: RootState) => state.profile as reduxType<Profile>);
+        updateProfileLoading: profileLoading,
+        updateProfileRes: profileResponse,
+    } = useSelector((state: RootState) => state.profile);
     const [avatarPreview, setAvatarPreview] = useState("/default-avatar.png");
     const [file, setFile] = useState<File | null>();
     const [profile, setProfile] = useState<Profile>();
@@ -75,59 +73,24 @@ export default function ProfilePage() {
 
     useEffect(() => {
         if (error) {
-            toast({
-                variant: "destructive",
-                description: (
-                    <div>
-                        <span><XCircleIcon className="h-6 w-6 mr-2 text-white-500 inline"/></span>
-                        <span>Can not upload avatar. Please try again.</span>
-                    </div>
-                )
-            })
+            CustomToast({type: {type: "error", message: "Can not upload avatar. Please try again !"}})
         }
-        if (success) {
-            if (profile) {
-                dispatch(updateProfile({...profile, avatar_url: avatarUrl || ""}));
-            }
+        if (success && profile) {
+            dispatch(updateProfile({...profile, avatar_url: avatarUrl || ""}));
         }
     }, [error, success]);
 
     useEffect(() => {
         if (profileLoading) {
-            toast({
-                variant: "default",
-                description: (
-                    <div className="flex items-center">
-                        <Loader2 className="h-6 w-6 mr-2 animate-spin"/>
-                        Updating....
-                    </div>
-                )
-            })
+            CustomToast({type: {type: "loading", message: "Updating..."}})
         }
 
         if (profileError) {
-            toast({
-                variant: "destructive",
-                description: (
-                    <div>
-                        <span><XCircleIcon className="h-6 w-6 mr-2 text-white-500 inline"/></span>
-                        {String((profileError?.response?.data as ErrorResponse)?.message)}
-                    </div>
-                )
-            })
+            CustomToast({type: {type: "error", message: String((profileError?.response?.data)?.message)}})
         }
 
         if (profileResponse?.status === 200) {
-            toast({
-                variant: "default",
-                className: "border border-green-500 bg-green-100 text-green-700",
-                description: (
-                    <div>
-                        <span><CheckCircleIcon className="h-6 w-6 mr-2 text-white-500 inline"/></span>
-                        {String(profileResponse?.response?.message)}
-                    </div>
-                )
-            })
+            CustomToast({type: {type: "success", message: String(profileResponse?.response?.message)}})
         }
     }, [profileResponse, profileLoading, profileError]);
 

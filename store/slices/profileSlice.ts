@@ -1,11 +1,15 @@
-import {OverideAxios, Profile, reduxType} from "@/utils/type";
+import {ApiResponse, OverrideAxiosError, Profile} from "@/utils/type";
 import {createAsyncThunk, createSlice} from "@reduxjs/toolkit";
 import axios from "axios";
 
-const initialState: reduxType<Profile> = {
-    response: null,
-    error: null,
-    loading: false,
+const initialState = {
+    getProfileRes: null as ApiResponse<Profile> | null,
+    updateProfileRes: null as ApiResponse<Profile> | null,
+
+    getProfileLoading: false,
+    updateProfileLoading: false,
+
+    error: null as OverrideAxiosError | null,
 }
 
 const baseUrl = process.env.NEXT_PUBLIC_URL_API;
@@ -44,36 +48,36 @@ const profileSlice = createSlice({
     reducers: {},
     extraReducers: (builder) => {
         builder.addCase(getProfile.pending, (state) => {
-            state.loading = true;
+            state.getProfileLoading = true;
             state.error = null;
-            state.response = null;
+            state.getProfileRes = null;
         });
         builder.addCase(getProfile.fulfilled, (state, action) => {
-            state.loading = false;
+            state.getProfileLoading = false;
             state.error = null;
-            state.response = action.payload;
+            state.getProfileRes = action.payload;
         });
         builder.addCase(getProfile.rejected, (state, action) => {
-            state.loading = false;
-            state.error = action.payload as OverideAxios;
-            state.response = null;
+            state.getProfileLoading = false;
+            state.error = action.payload as OverrideAxiosError;
+            state.getProfileRes = null;
         });
 
 
         builder.addCase(updateProfile.pending, (state) => {
-            state.loading = true;
+            state.updateProfileLoading = true;
             state.error = null;
-            state.response = null;
+            state.updateProfileRes = null;
         });
         builder.addCase(updateProfile.fulfilled, (state, action) => {
-            state.loading = false;
+            state.updateProfileLoading = false;
             state.error = null;
-            state.response = action.payload;
+            state.updateProfileRes = action.payload;
         });
         builder.addCase(updateProfile.rejected, (state, action) => {
-            state.loading = false;
-            state.error = action.payload as OverideAxios;
-            state.response = null;
+            state.updateProfileLoading = false;
+            state.error = action.payload as OverrideAxiosError;
+            state.updateProfileRes = null;
         });
     }
 });
