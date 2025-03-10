@@ -25,31 +25,43 @@ export default function DashboardLayout({children}: { children: React.ReactNode 
     const dispath = useAppDispatch();
     const {response, loading, error} = useSelector((state: RootState) => state.auth as reduxType<User>);
     const {
-        loading: profileLoading,
+        getProfileLoading: profileLoading,
         getProfileRes: profileResponse,
         error: profileError,
     } = useSelector((state: RootState) => state.profile);
     const [authenticated, setAuthenticated] = useState<boolean>(false);
-    const [user, setUser] = useState<User>();
-    const [profile, setProfile] = useState<Profile>();
+    const [localProfileData, setLocalProfileData] = useState<Profile | null>(null);
+    const [localUserEmail, setLocalUserEmail] = useState<User | null>(null);
 
     useEffect(() => {
         dispath(requireAuth());
     }, []);
 
     useEffect(() => {
-        dispath(getUser());
+        const profileLocal = localStorage.getItem("profile");
+        const userLocal = localStorage.getItem("user");
+        if (profileLocal) {
+            setLocalProfileData(JSON.parse(profileLocal));
+        }
+        if (userLocal) {
+            setLocalUserEmail(JSON.parse(userLocal));
+        }
+    }, [setLocalProfileData, setLocalUserEmail]);
+
+    useEffect(() => {
+        if (!localUserEmail) {
+            dispath(getUser());
+        }
+
+        if (!localProfileData) {
+            dispath(getProfile());
+        }
     }, [authenticated]);
 
     useEffect(() => {
-        if (user) {
-            dispath(getProfile());
-        }
-    }, [user]);
-
-    useEffect(() => {
         if (response?.status === 200 && response) {
-            setUser(response.response?.data);
+            localStorage.setItem("user", JSON.stringify(response.response?.data));
+            setLocalUserEmail(response.response?.data || null);
             setAuthenticated(true);
             return;
         }
@@ -63,7 +75,14 @@ export default function DashboardLayout({children}: { children: React.ReactNode 
 
     useEffect(() => {
         if (profileResponse?.status === 200) {
-            setProfile(profileResponse.response.data);
+            localStorage.setItem("profile", JSON.stringify({
+                first_name: profileResponse.response?.data?.first_name,
+                last_name: profileResponse.response?.data?.last_name,
+                avatar_url: profileResponse.response?.data?.avatar_url,
+                date_of_birth: profileResponse.response?.data?.date_of_birth
+            }));
+            setLocalProfileData(profileResponse.response?.data || null);
+            return;
         }
 
         if (profileError) {
@@ -76,7 +95,7 @@ export default function DashboardLayout({children}: { children: React.ReactNode 
             {authenticated ?
                 <div className="flex min-h-screen">
                     <SidebarProvider>
-                        <AppSidebar email={user?.email || ""} profile={profile || null}/>
+                        <AppSidebar email={localUserEmail?.email || ""} profile={localProfileData || null}/>
                         <SidebarInset>
                             <header
                                 className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">

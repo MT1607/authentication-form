@@ -171,7 +171,8 @@ export function AppSidebar({email, profile, ...props}: {
                         <NavUser user={{
                             ...data.user,
                             name: `${profile.first_name} ${profile.last_name}`,
-                            email: email
+                            email: email,
+                            avatar: `${profile.avatar_url}`,
                         }}/> : `${profile}`
                 }
             </SidebarFooter>

@@ -17,6 +17,7 @@ import {Profile} from "@/utils/type";
 import {Toaster} from "@/components/ui/toaster";
 import {updateProfile} from "@/store/slices/profileSlice";
 import CustomToast from "@/components/custom-toast";
+import {formatDateToInput} from "@/utils/scripts";
 
 const profileSchema = z.object({
     avatar_url: z.string().optional(),
@@ -27,24 +28,33 @@ const profileSchema = z.object({
 
 export default function ProfilePage() {
     const dispatch = useAppDispatch();
-
+    const profileData = localStorage.getItem("profile") ? JSON.parse(localStorage.getItem("profile") || "") as Profile : null;
     const {avatarUrl, error, success} = useSelector((state: RootState) => state.s3 as s3State);
     const {
         error: profileError,
         updateProfileLoading: profileLoading,
         updateProfileRes: profileResponse,
     } = useSelector((state: RootState) => state.profile);
-    const [avatarPreview, setAvatarPreview] = useState("/default-avatar.png");
+    const [avatarPreview, setAvatarPreview] = useState(profileData.avatar_url);
     const [file, setFile] = useState<File | null>();
     const [profile, setProfile] = useState<Profile>();
+    const [updateLoading, setUpdateLoading] = useState<boolean>(false);
+    // const [localProfile, setLocalProfile] = useState<Profile>();
+
+    // useEffect(() => {
+    //     const profileData = localStorage.getItem("profile");
+    //     if (profileData) {
+    //         setLocalProfile(JSON.parse(profileData));
+    //     }
+    // }, []);
 
     const form = useForm<z.infer<typeof profileSchema>>({ // change here
         resolver: zodResolver(profileSchema),
         defaultValues: {
-            avatar_url: "",
-            first_name: "",
-            last_name: "",
-            date_of_birth: "",
+            avatar_url: profileData?.avatar_url || "",
+            first_name: profileData?.first_name || "",
+            last_name: profileData?.last_name || "",
+            date_of_birth: formatDateToInput(profileData?.date_of_birth || ""),
         },
     });
 
@@ -59,6 +69,7 @@ export default function ProfilePage() {
 
     const handleAvatarChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         if (event.target.files && event.target.files.length > 0) {
+            console.log("event target file: ", event.target.files)
             setFile(event.target.files[0]);
         }
     };
@@ -76,21 +87,31 @@ export default function ProfilePage() {
             CustomToast({type: {type: "error", message: "Can not upload avatar. Please try again !"}})
         }
         if (success && profile) {
-            dispatch(updateProfile({...profile, avatar_url: avatarUrl || ""}));
+            dispatch(updateProfile({...profile, avatar_url: avatarUrl || profileData?.avatar_url}));
         }
     }, [error, success]);
 
     useEffect(() => {
         if (profileLoading) {
+            setUpdateLoading(true);
             CustomToast({type: {type: "loading", message: "Updating..."}})
         }
 
         if (profileError) {
+            setUpdateLoading(false);
             CustomToast({type: {type: "error", message: String((profileError?.response?.data)?.message)}})
         }
 
         if (profileResponse?.status === 200) {
-            CustomToast({type: {type: "success", message: String(profileResponse?.response?.message)}})
+            console.log(avatarUrl, profileData?.avatar_url);
+            setUpdateLoading(false);
+            CustomToast({type: {type: "success", message: String(profileResponse?.response?.message)}});
+            localStorage.setItem("profile", JSON.stringify({
+                first_name: form.getValues("first_name"),
+                last_name: form.getValues("last_name"),
+                avatar_url: avatarUrl || profileData?.avatar_url,
+                date_of_birth: form.getValues("date_of_birth")
+            }));
         }
     }, [profileResponse, profileLoading, profileError]);
 
@@ -100,7 +121,8 @@ export default function ProfilePage() {
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                     <div className="flex items-center space-x-4">
                         <Avatar className="w-16 h-16">
-                            <AvatarImage src={avatarPreview || avatarUrl || ""} alt="Avatar"/>
+                            <AvatarImage src={avatarPreview ? avatarPreview : profileData?.avatar_url}
+                                         alt="Avatar"/>
                             <AvatarFallback>U</AvatarFallback>
                         </Avatar>
                         <input type="file" accept="image/*" onChange={handleAvatarChange} className="hidden"
@@ -139,7 +161,9 @@ export default function ProfilePage() {
                         </FormItem>
                     )}/>
 
-                    <Button type="submit">Update Profile</Button>
+                    <Button type="submit" disabled={updateLoading}>
+                        {updateLoading ? "Updating..." : "Update Profile"}
+                    </Button>
                 </form>
             </Form>
             <Toaster/>
