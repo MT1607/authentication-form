@@ -35,7 +35,7 @@ export default function ProfilePage() {
         updateProfileLoading: profileLoading,
         updateProfileRes: profileResponse,
     } = useSelector((state: RootState) => state.profile);
-    const [avatarPreview, setAvatarPreview] = useState(profileData.avatar_url);
+    const [avatarPreview, setAvatarPreview] = useState(profileData?.avatar_url);
     const [file, setFile] = useState<File | null>();
     const [profile, setProfile] = useState<Profile>();
     const [updateLoading, setUpdateLoading] = useState<boolean>(false);
