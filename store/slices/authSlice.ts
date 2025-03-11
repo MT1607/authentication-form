@@ -113,6 +113,7 @@ const authSlice = createSlice({
             state.loading = false;
             state.error = null;
             state.response = action.payload;
+            console.log("success: ", state.response);
         });
         builder.addCase(postLogin.rejected, (state, action) => {
             state.loading = false;

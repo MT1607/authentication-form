@@ -20,7 +20,7 @@ import {getProfile} from "@/store/slices/profileSlice";
 import CustomToast from "@/components/custom-toast";
 
 export default function DashboardLayout({children}: { children: React.ReactNode }) {
-    const dispath = useAppDispatch();
+    const dispatch = useAppDispatch();
     const {response, loading} = useSelector((state: RootState) => state.auth);
     const {
         getProfileLoading: profileLoading,
@@ -32,29 +32,21 @@ export default function DashboardLayout({children}: { children: React.ReactNode 
     const [localUserEmail, setLocalUserEmail] = useState<User | null>(null);
 
     useEffect(() => {
-        dispath(requireAuth());
-    }, []);
+        dispatch(requireAuth());
+    }, [dispatch]);
 
     useEffect(() => {
         const profileLocal = localStorage.getItem("profile");
         const userLocal = localStorage.getItem("user");
-        if (profileLocal) {
-            setLocalProfileData(JSON.parse(profileLocal));
-        }
-        if (userLocal) {
-            setLocalUserEmail(JSON.parse(userLocal));
-        }
-    }, [setLocalProfileData, setLocalUserEmail]);
+        if (profileLocal) setLocalProfileData(JSON.parse(profileLocal));
+        if (userLocal) setLocalUserEmail(JSON.parse(userLocal));
+    }, []);
 
     useEffect(() => {
-        if (!localUserEmail) {
-            dispath(getUser());
-        }
+        if (!localUserEmail) dispatch(getUser());
 
-        if (!localProfileData) {
-            dispath(getProfile());
-        }
-    }, [authenticated]);
+        if (!localProfileData) dispatch(getProfile());
+    }, [localUserEmail, localProfileData, dispatch]);
 
     useEffect(() => {
         if (response?.status === 200 && response) {
@@ -69,7 +61,7 @@ export default function DashboardLayout({children}: { children: React.ReactNode 
         // } else {
         //     return;
         // }
-    }, [loading]);
+    }, [response]);
 
     useEffect(() => {
         if (profileResponse?.status === 200) {
@@ -86,7 +78,7 @@ export default function DashboardLayout({children}: { children: React.ReactNode 
         if (profileError) {
             CustomToast({type: {type: "error", message: profileError.message}});
         }
-    }, [profileLoading, profileResponse, profileError]);
+    }, [profileResponse]);
 
     return (
         <>
