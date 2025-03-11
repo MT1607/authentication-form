@@ -10,7 +10,6 @@ interface typeToast {
 export const CustomToast = ({type}: { type: typeToast }) => {
     switch (type.type) {
         case "success":
-            console.log("toast success!");
             return (
                 toast({
                     variant: "default",

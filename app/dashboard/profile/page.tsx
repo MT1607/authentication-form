@@ -18,6 +18,7 @@ import {Toaster} from "@/components/ui/toaster";
 import {updateProfile} from "@/store/slices/profileSlice";
 import CustomToast from "@/components/custom-toast";
 import {formatDateToInput} from "@/utils/scripts";
+import SessionExpiredCard from "@/components/end-session-card";
 
 const profileSchema = z.object({
     avatar_url: z.string().optional(),
@@ -39,14 +40,7 @@ export default function ProfilePage() {
     const [file, setFile] = useState<File | null>();
     const [profile, setProfile] = useState<Profile>();
     const [updateLoading, setUpdateLoading] = useState<boolean>(false);
-    // const [localProfile, setLocalProfile] = useState<Profile>();
-
-    // useEffect(() => {
-    //     const profileData = localStorage.getItem("profile");
-    //     if (profileData) {
-    //         setLocalProfile(JSON.parse(profileData));
-    //     }
-    // }, []);
+    const [sessionExpired, setSessionExpired] = useState<boolean>(false);
 
     const form = useForm<z.infer<typeof profileSchema>>({ // change here
         resolver: zodResolver(profileSchema),
@@ -69,7 +63,6 @@ export default function ProfilePage() {
 
     const handleAvatarChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         if (event.target.files && event.target.files.length > 0) {
-            console.log("event target file: ", event.target.files)
             setFile(event.target.files[0]);
         }
     };
@@ -99,11 +92,14 @@ export default function ProfilePage() {
 
         if (profileError) {
             setUpdateLoading(false);
-            CustomToast({type: {type: "error", message: String((profileError?.response?.data)?.message)}})
+            if (profileError.status === 401) {
+                setSessionExpired(true);
+            } else {
+                CustomToast({type: {type: "error", message: String((profileError?.response?.data)?.message)}})
+            }
         }
 
         if (profileResponse?.status === 200) {
-            console.log(avatarUrl, profileData?.avatar_url);
             setUpdateLoading(false);
             CustomToast({type: {type: "success", message: String(profileResponse?.response?.message)}});
             localStorage.setItem("profile", JSON.stringify({
@@ -113,10 +109,11 @@ export default function ProfilePage() {
                 date_of_birth: form.getValues("date_of_birth")
             }));
         }
-    }, [profileResponse, profileLoading, profileError]);
+    }, [profileLoading]);
 
     return (
         <div className="m-6">
+            {sessionExpired && <SessionExpiredCard/>}
             <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                     <div className="flex items-center space-x-4">

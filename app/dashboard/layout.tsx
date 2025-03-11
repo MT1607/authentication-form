@@ -10,20 +10,18 @@ import {
     BreadcrumbPage,
     BreadcrumbSeparator
 } from "@/components/ui/breadcrumb";
-import {useRouter} from "next/navigation";
 import {useEffect, useState} from "react";
 import {useSelector} from "react-redux";
 import {useAppDispatch} from "@/store/hooks";
 import {getUser, requireAuth} from "@/store/slices/authSlice";
 import {RootState} from "@/store";
-import {Profile, reduxType, User} from "@/utils/type";
+import {Profile, User} from "@/utils/type";
 import {getProfile} from "@/store/slices/profileSlice";
 import CustomToast from "@/components/custom-toast";
 
 export default function DashboardLayout({children}: { children: React.ReactNode }) {
-    const router = useRouter();
     const dispath = useAppDispatch();
-    const {response, loading, error} = useSelector((state: RootState) => state.auth as reduxType<User>);
+    const {response, loading} = useSelector((state: RootState) => state.auth);
     const {
         getProfileLoading: profileLoading,
         getProfileRes: profileResponse,
@@ -66,12 +64,12 @@ export default function DashboardLayout({children}: { children: React.ReactNode 
             return;
         }
 
-        if (error?.response?.status === 402) {
-            return router.push("/login");
-        } else {
-            return;
-        }
-    }, [error, loading, response]);
+        // if (error?.response?.status === 402) {
+        //     return router.push("/login");
+        // } else {
+        //     return;
+        // }
+    }, [loading]);
 
     useEffect(() => {
         if (profileResponse?.status === 200) {

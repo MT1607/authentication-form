@@ -8,7 +8,7 @@ import {Label} from "@/components/ui/label";
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
 import {useRouter} from "next/navigation";
 import {Toaster} from "@/components/ui/toaster";
-import {LoginForm, reduxType, User} from "@/utils/type";
+import {LoginForm} from "@/utils/type";
 import {useAppDispatch} from "@/store/hooks";
 import {useSelector} from "react-redux";
 import {RootState} from "@/store";
@@ -21,7 +21,7 @@ export default function LoginPage() {
     const router = useRouter();
     const {register, handleSubmit, formState: {errors}} = useForm<LoginForm>();
 
-    const {error, response, loading} = useSelector((state: RootState) => state.auth as reduxType<User>);
+    const {error, response, loading} = useSelector((state: RootState) => state.auth);
 
     useEffect(() => {
         if (loading) {
