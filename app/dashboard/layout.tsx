@@ -21,9 +21,8 @@ import CustomToast from "@/components/custom-toast";
 
 export default function DashboardLayout({children}: { children: React.ReactNode }) {
     const dispatch = useAppDispatch();
-    const {response, loading} = useSelector((state: RootState) => state.auth);
+    const {response} = useSelector((state: RootState) => state.auth);
     const {
-        getProfileLoading: profileLoading,
         getProfileRes: profileResponse,
         error: profileError,
     } = useSelector((state: RootState) => state.profile);
@@ -55,12 +54,6 @@ export default function DashboardLayout({children}: { children: React.ReactNode 
             setAuthenticated(true);
             return;
         }
-
-        // if (error?.response?.status === 402) {
-        //     return router.push("/login");
-        // } else {
-        //     return;
-        // }
     }, [response]);
 
     useEffect(() => {
@@ -85,7 +78,7 @@ export default function DashboardLayout({children}: { children: React.ReactNode 
             {authenticated ?
                 <div className="flex min-h-screen">
                     <SidebarProvider>
-                        <AppSidebar email={localUserEmail?.email || ""} profile={localProfileData || null}/>
+                        <AppSidebar/>
                         <SidebarInset>
                             <header
                                 className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">

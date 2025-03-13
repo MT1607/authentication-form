@@ -19,6 +19,7 @@ import {updateProfile} from "@/store/slices/profileSlice";
 import CustomToast from "@/components/custom-toast";
 import {formatDateToInput} from "@/utils/scripts";
 import SessionExpiredCard from "@/components/end-session-card";
+import {useProfileContext} from "@/context/context-provider";
 
 const profileSchema = z.object({
     avatar_url: z.string().optional(),
@@ -31,6 +32,7 @@ export default function ProfilePage() {
     const dispatch = useAppDispatch();
     const profileData = localStorage.getItem("profile") ? JSON.parse(localStorage.getItem("profile") || "") as Profile : null;
     const {avatarUrl, error, success} = useSelector((state: RootState) => state.s3 as s3State);
+    const {profileContext, updateProfileContext} = useProfileContext();
     const {
         error: profileError,
         updateProfileLoading: profileLoading,
@@ -101,13 +103,15 @@ export default function ProfilePage() {
 
         if (profileResponse?.status === 200) {
             setUpdateLoading(false);
-            CustomToast({type: {type: "success", message: String(profileResponse?.response?.message)}});
-            localStorage.setItem("profile", JSON.stringify({
+            updateProfileContext({
                 first_name: form.getValues("first_name"),
                 last_name: form.getValues("last_name"),
                 avatar_url: avatarUrl || profileData?.avatar_url,
                 date_of_birth: form.getValues("date_of_birth")
-            }));
+            });
+
+            CustomToast({type: {type: "success", message: String(profileResponse?.response?.message)}});
+
         }
     }, [profileLoading]);
 
