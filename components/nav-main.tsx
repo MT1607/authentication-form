@@ -33,14 +33,25 @@ export function NavMain({items}: {
                 {items.map((item) => (
                     <Collapsible key={item.title} asChild defaultOpen={item.isActive} className="group/collapsible">
                         <SidebarMenuItem>
-                            <CollapsibleTrigger asChild>
-                                <SidebarMenuButton tooltip={item.title}>
-                                    {item.icon && <item.icon/>}
-                                    <span>{item.title}</span>
-                                    <ChevronRight
-                                        className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90"/>
-                                </SidebarMenuButton>
-                            </CollapsibleTrigger>
+                            {item.items?.length ? (
+                                <CollapsibleTrigger asChild>
+                                    <SidebarMenuButton tooltip={item.title}
+                                                       className={`${item.isActive && "font-extrabold bg-gray-200"} `}>
+                                        {item.icon && <item.icon/>}
+                                        <span>{item.title}</span>
+                                        <ChevronRight
+                                            className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90"/>
+                                    </SidebarMenuButton>
+                                </CollapsibleTrigger>
+                            ) : (
+                                <a href={`/dashboard` + `${item.url}`} className="w-full">
+                                    <SidebarMenuButton tooltip={item.title}
+                                                       className={`${item.isActive && "font-extrabold bg-gray-200"}`}>
+                                        {item.icon && <item.icon/>}
+                                        <span>{item.title}</span>
+                                    </SidebarMenuButton>
+                                </a>
+                            )}
                             <CollapsibleContent>
                                 <SidebarMenuSub>
                                     {item.items?.map((subItem) => (
