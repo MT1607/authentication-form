@@ -1,7 +1,6 @@
 import type {Metadata} from "next";
 import {Geist, Geist_Mono} from "next/font/google";
 import "./globals.css";
-import {ProviderComponent} from "@/app/provider";
 import {ContextProvider} from "@/context/context-provider";
 
 
@@ -32,9 +31,7 @@ export default function RootLayout({
             className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         >
         <ContextProvider>
-            <ProviderComponent>
-                {children}
-            </ProviderComponent>
+            {children}
         </ContextProvider>
         </body>
         </html>

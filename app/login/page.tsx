@@ -9,36 +9,38 @@ import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
 import {useRouter} from "next/navigation";
 import {Toaster} from "@/components/ui/toaster";
 import {LoginForm} from "@/utils/type";
-import {useAppDispatch} from "@/store/hooks";
-import {useSelector} from "react-redux";
-import {RootState} from "@/store";
-import {postLogin} from "@/store/slices/authSlice";
-import CustomToast from "@/components/custom-toast";
+import {useAuthStore} from "@/store/auth-zustand";
+import {useToastManager} from "@/hooks/use-toast-manager";
 
 
 export default function LoginPage() {
-    const dispath = useAppDispatch();
     const router = useRouter();
     const {register, handleSubmit, formState: {errors}} = useForm<LoginForm>();
+    const {apiData, error, loading, postLogin} = useAuthStore();
+    const {showToast} = useToastManager();
 
-    const {error, response, loading} = useSelector((state: RootState) => state.auth);
+    useEffect(() => {
+        if (error) {
+            showToast("error", `${error.response?.data?.message}`);
+        }
+    }, [error]);
+
+    useEffect(() => {
+        if (apiData && apiData.response.message) {
+            showToast("success", `${apiData.response.message}`);
+            console.log("is here")
+            router.push("/");
+        }
+    }, [apiData]);
 
     useEffect(() => {
         if (loading) {
-            CustomToast({type: {type: "loading", message: "Logging..."}})
-        }
-        if (error?.status === 400) {
-            CustomToast({type: {type: "error", message: error?.response?.data?.message || ""}})
-        }
-
-        if (response?.status === 200) {
-            CustomToast({type: {type: "success", message: "Login successfully"}})
-            router.push("/");
+            showToast("loading", `Logging....`);
         }
     }, [loading]);
 
     const onSubmit = async (data: LoginForm) => {
-        dispath(postLogin(data));
+        await postLogin({email: data.email, password: data.password});
     };
 
     return (

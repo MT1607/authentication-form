@@ -1,7 +1,7 @@
 import {AxiosError} from "axios";
 
 export interface User {
-    email: string;
+    email: string | undefined;
 }
 
 export interface Profile {
@@ -24,7 +24,7 @@ export interface OverrideAxiosError<T = unknown> extends AxiosError<T> {
     };
 }
 
-export interface ApiResponse<T extends object> {
+export interface ApiResponse<T extends object | null> {
     status: number,
     response: {
         data?: T,
@@ -33,7 +33,7 @@ export interface ApiResponse<T extends object> {
 }
 
 export interface reduxType<T extends object> {
-    response: ApiResponse<T> | null;
+    apiData: ApiResponse<T> | null;
     error: OverrideAxiosError | null;
     loading: boolean;
 }

@@ -1,33 +1,49 @@
 "use client"
 import {createContext, useContext, useEffect, useState} from "react";
-import {Profile} from "@/utils/type";
+import {Profile, User} from "@/utils/type";
 
-type ProfileContextFile = {
+type ContextFile = {
     profileContext: Profile | null;
+    userContext: User | null;
     updateProfileContext: (newProfile: Profile) => void;
+    updateUserContext: (newUser: User) => void;
 }
 
-const Context = createContext<ProfileContextFile | null>(null);
+const Context = createContext<ContextFile | null>(null);
 
 export const ContextProvider = ({children}: { children: React.ReactNode }) => {
     const storedProfile = typeof window !== "undefined" ? localStorage.getItem("profile") : null;
+    const storedUser = typeof window !== "undefined" ? localStorage.getItem("user") : null;
+
     const initialProfile = storedProfile ? JSON.parse(storedProfile) : null;
+    const initialUserContext = storedUser ? JSON.parse(storedUser) : null;
+
     const [profileContext, setProfileContext] = useState<Profile | null>(initialProfile);
+    const [userContext, setUserContext] = useState<User | null>(initialUserContext);
 
     const updateProfileContext = (newProfile: Profile) => {
-        console.log("call to hear.");
         setProfileContext(newProfile);
         localStorage.setItem("profile", JSON.stringify(newProfile));
         window.dispatchEvent(new Event("storage"));
     };
 
+    const updateUserContext = (newUser: User) => {
+        setUserContext(newUser);
+        localStorage.setItem("user", JSON.stringify(newUser));
+        window.dispatchEvent(new Event("storage"));
+    }
+
     useEffect(() => {
         const handleStorageChange = () => {
             const updateProfileContext = localStorage.getItem("profile");
-            console.log("it is update: ", updateProfileContext);
+            const updateUserContext = localStorage.getItem("user");
+
             if (updateProfileContext) {
                 setProfileContext(JSON.parse(updateProfileContext));
-                console.log("update to hear: ", profileContext);
+            }
+
+            if (updateUserContext) {
+                setUserContext(JSON.parse(updateUserContext));
             }
         }
 
@@ -36,7 +52,7 @@ export const ContextProvider = ({children}: { children: React.ReactNode }) => {
     }, []);
 
     return (
-        <Context.Provider value={{profileContext, updateProfileContext}}>
+        <Context.Provider value={{profileContext, userContext, updateProfileContext, updateUserContext}}>
             {children}
         </Context.Provider>
     );
@@ -44,7 +60,7 @@ export const ContextProvider = ({children}: { children: React.ReactNode }) => {
 }
 
 
-export const useProfileContext = () => {
+export const useLocalContext = () => {
     const context = useContext(Context);
     if (!context) {
         throw new Error("useProfileContext must be used within a ProfileContextProvider");

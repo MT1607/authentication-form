@@ -10,98 +10,83 @@ import {
     BreadcrumbPage,
     BreadcrumbSeparator
 } from "@/components/ui/breadcrumb";
-import {useEffect, useState} from "react";
-import {useSelector} from "react-redux";
-import {useAppDispatch} from "@/store/hooks";
-import {getUser, requireAuth} from "@/store/slices/authSlice";
-import {RootState} from "@/store";
-import {Profile, User} from "@/utils/type";
-import {getProfile} from "@/store/slices/profileSlice";
-import CustomToast from "@/components/custom-toast";
+import {useLocalStorage} from "@/hooks/use-local-storage";
+import {useEffect} from "react";
+import {useUserStore} from "@/store/user-zustand";
+import {useProfileStore} from "@/store/profile-zustand";
+import {useLocalContext} from "@/context/context-provider";
 
 export default function DashboardLayout({children}: { children: React.ReactNode }) {
-    const dispatch = useAppDispatch();
-    const {response} = useSelector((state: RootState) => state.auth);
-    const {
-        getProfileRes: profileResponse,
-        error: profileError,
-    } = useSelector((state: RootState) => state.profile);
-    const [authenticated, setAuthenticated] = useState<boolean>(false);
-    const [localProfileData, setLocalProfileData] = useState<Profile | null>(null);
-    const [localUserEmail, setLocalUserEmail] = useState<User | null>(null);
+    const profileDta = useLocalStorage("profile");
+    const userDta = useLocalStorage("user");
+
+    const {apiDataUser, getUser} = useUserStore();
+    const {apiDataProfile, getProfile} = useProfileStore();
+
+    const {updateProfileContext} = useLocalContext();
+    const {updateUserContext} = useLocalContext();
 
     useEffect(() => {
-        dispatch(requireAuth());
-    }, [dispatch]);
-
-    useEffect(() => {
-        const profileLocal = localStorage.getItem("profile");
-        const userLocal = localStorage.getItem("user");
-        if (profileLocal) setLocalProfileData(JSON.parse(profileLocal));
-        if (userLocal) setLocalUserEmail(JSON.parse(userLocal));
+        if (!profileDta) {
+            (async () => {
+                await getProfile();
+            })()
+        }
     }, []);
 
     useEffect(() => {
-        if (!localUserEmail) dispatch(getUser());
-
-        if (!localProfileData) dispatch(getProfile());
-    }, [localUserEmail, localProfileData, dispatch]);
+        if (apiDataProfile.status === 200) {
+            updateProfileContext({
+                avatar_url: apiDataProfile.response.data?.avatar_url,
+                first_name: apiDataProfile.response.data?.first_name,
+                last_name: apiDataProfile.response.data?.last_name,
+                date_of_birth: apiDataProfile.response.data?.date_of_birth
+            });
+        }
+    }, [apiDataProfile]);
 
     useEffect(() => {
-        if (response?.status === 200 && response) {
-            localStorage.setItem("user", JSON.stringify(response.response?.data));
-            setLocalUserEmail(response.response?.data || null);
-            setAuthenticated(true);
-            return;
+        if (!userDta) {
+            (async () => {
+                await getUser();
+            })()
         }
-    }, [response]);
+    }, []);
 
     useEffect(() => {
-        if (profileResponse?.status === 200) {
-            localStorage.setItem("profile", JSON.stringify({
-                first_name: profileResponse.response?.data?.first_name,
-                last_name: profileResponse.response?.data?.last_name,
-                avatar_url: profileResponse.response?.data?.avatar_url,
-                date_of_birth: profileResponse.response?.data?.date_of_birth
-            }));
-            setLocalProfileData(profileResponse.response?.data || null);
-            return;
+        if (apiDataUser.status === 200) {
+            updateUserContext({email: apiDataUser.response.data?.email})
         }
-
-        if (profileError) {
-            CustomToast({type: {type: "error", message: profileError.message}});
-        }
-    }, [profileResponse]);
+    }, [apiDataUser]);
 
     return (
         <>
-            {authenticated ?
-                <div className="flex min-h-screen">
-                    <SidebarProvider>
-                        <AppSidebar/>
-                        <SidebarInset>
-                            <header
-                                className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
-                                <div className="flex items-center gap-2 px-4">
-                                    <SidebarTrigger className="-ml-1"/>
-                                    <Separator orientation="vertical" className="mr-2 h-4"/>
-                                    <Breadcrumb>
-                                        <BreadcrumbList>
-                                            <BreadcrumbItem className="hidden md:block">
-                                                <BreadcrumbLink href="#">Building Your Application</BreadcrumbLink>
-                                            </BreadcrumbItem>
-                                            <BreadcrumbSeparator className="hidden md:block"/>
-                                            <BreadcrumbItem>
-                                                <BreadcrumbPage>Data Fetching</BreadcrumbPage>
-                                            </BreadcrumbItem>
-                                        </BreadcrumbList>
-                                    </Breadcrumb>
-                                </div>
-                            </header>
-                            {children}
-                        </SidebarInset>
-                    </SidebarProvider>
-                </div> : ""}
+            <div className="flex min-h-screen">
+                <SidebarProvider>
+                    <AppSidebar/>
+                    <SidebarInset>
+                        <header
+                            className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
+                            <div className="flex items-center gap-2 px-4">
+                                <SidebarTrigger className="-ml-1"/>
+                                <Separator orientation="vertical" className="mr-2 h-4"/>
+                                <Breadcrumb>
+                                    <BreadcrumbList>
+                                        <BreadcrumbItem className="hidden md:block">
+                                            <BreadcrumbLink href="#">Building Your Application</BreadcrumbLink>
+                                        </BreadcrumbItem>
+                                        <BreadcrumbSeparator className="hidden md:block"/>
+                                        <BreadcrumbItem>
+                                            <BreadcrumbPage>Data Fetching</BreadcrumbPage>
+                                        </BreadcrumbItem>
+                                    </BreadcrumbList>
+                                </Breadcrumb>
+                            </div>
+                        </header>
+                        {children}
+                    </SidebarInset>
+                </SidebarProvider>
+            </div>
         </>
     );
 }

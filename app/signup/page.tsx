@@ -8,12 +8,8 @@ import {Label} from "@/components/ui/label";
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
 import {useRouter} from "next/navigation";
 import {Toaster} from "@/components/ui/toaster";
-import {useAppDispatch} from "@/store/hooks";
-import {postRegister} from "@/store/slices/authSlice";
-import {useSelector} from "react-redux";
-import {RootState} from "@/store";
-import CustomToast from "@/components/custom-toast";
-import {reduxType, User} from "@/utils/type";
+import {useAuthStore} from "@/store/auth-zustand";
+import {useToastManager} from "@/hooks/use-toast-manager";
 
 interface SignupFormData {
     email: string;
@@ -22,10 +18,10 @@ interface SignupFormData {
 }
 
 export default function SignupPage() {
-    const dispath = useAppDispatch();
-    const {error, response, loading} = useSelector((state: RootState) => state.auth as reduxType<User>);
-
     const router = useRouter();
+    const {apiData, error, loading, postRegister} = useAuthStore();
+    const {showToast} = useToastManager();
+
     const {
         register,
         handleSubmit,
@@ -35,21 +31,26 @@ export default function SignupPage() {
 
     useEffect(() => {
         if (loading) {
-            CustomToast({type: {type: "loading", message: "Logging..."}})
-        }
-
-        if (response?.status === 200) {
-            CustomToast({type: {type: "success", message: "Register successfully"}})
-            router.push("/");
-        }
-
-        if (error?.status === 400) {
-            CustomToast({type: {type: "error", message: error?.response?.data?.message || ""}})
+            showToast("loading", "Registering...")
         }
     }, [loading]);
 
+    useEffect(() => {
+        if (error) {
+            showToast("error", `${error.response?.data?.message}`);
+        }
+    }, [error]);
+
+    useEffect(() => {
+        if (apiData) {
+            showToast("success", `${apiData.response.message}`);
+            router.push("/dashboard");
+        }
+    }, [apiData]);
+
+
     const onSubmit = async (data: SignupFormData) => {
-        dispath(postRegister(data));
+        await postRegister({email: data.email, password: data.password});
     };
 
     const password = watch("password");

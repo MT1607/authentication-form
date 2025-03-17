@@ -13,13 +13,13 @@ import {RootState} from "@/store";
 import {uploadAvatar} from "@/store/slices/s3Slice";
 import {useAppDispatch} from "@/store/hooks";
 import {s3State} from "@/utils/reduxType";
-import {Profile} from "@/utils/type";
+import {ApiResponse, OverrideAxiosError, Profile} from "@/utils/type";
 import {Toaster} from "@/components/ui/toaster";
 import {updateProfile} from "@/store/slices/profileSlice";
 import CustomToast from "@/components/custom-toast";
 import {formatDateToInput} from "@/utils/scripts";
 import SessionExpiredCard from "@/components/end-session-card";
-import {useProfileContext} from "@/context/context-provider";
+import {useLocalContext} from "@/context/context-provider";
 
 const profileSchema = z.object({
     avatar_url: z.string().optional(),
@@ -32,7 +32,7 @@ export default function ProfilePage() {
     const dispatch = useAppDispatch();
     const profileData = localStorage.getItem("profile") ? JSON.parse(localStorage.getItem("profile") || "") as Profile : null;
     const {avatarUrl, error, success} = useSelector((state: RootState) => state.s3 as s3State);
-    const {profileContext, updateProfileContext} = useProfileContext();
+    const {updateProfileContext} = useLocalContext();
     const {
         error: profileError,
         updateProfileLoading: profileLoading,
@@ -43,6 +43,10 @@ export default function ProfilePage() {
     const [profile, setProfile] = useState<Profile>();
     const [updateLoading, setUpdateLoading] = useState<boolean>(false);
     const [sessionExpired, setSessionExpired] = useState<boolean>(false);
+
+    const [errorUploadAvatar, setErrorUploadAvatar] = useState<string | null>();
+    const [errorUpdateProfile, setErrorUpdateProfile] = useState<OverrideAxiosError<unknown> | null>(null);
+    const [successUpdateProfile, setSuccessUpdateProfile] = useState<ApiResponse<Profile> | null>(null);
 
     const form = useForm<z.infer<typeof profileSchema>>({ // change here
         resolver: zodResolver(profileSchema),
@@ -79,7 +83,8 @@ export default function ProfilePage() {
 
     useEffect(() => {
         if (error) {
-            CustomToast({type: {type: "error", message: "Can not upload avatar. Please try again !"}})
+            // CustomToast({type: {type: "error", message: "Can not upload avatar. Please try again !"}});
+            setErrorUploadAvatar(error)
         }
         if (success && profile) {
             dispatch(updateProfile({...profile, avatar_url: avatarUrl || profileData?.avatar_url}));
@@ -87,33 +92,55 @@ export default function ProfilePage() {
     }, [error, success]);
 
     useEffect(() => {
+        if (errorUploadAvatar) {
+            CustomToast({type: {type: "error", message: "Can not upload avatar. Please try again !"}});
+        }
+    }, [errorUploadAvatar]);
+
+    useEffect(() => {
         if (profileLoading) {
             setUpdateLoading(true);
-            CustomToast({type: {type: "loading", message: "Updating..."}})
+            setErrorUploadAvatar(null);
+            setSuccessUpdateProfile(null);
         }
 
         if (profileError) {
             setUpdateLoading(false);
-            if (profileError.status === 401) {
-                setSessionExpired(true);
-            } else {
-                CustomToast({type: {type: "error", message: String((profileError?.response?.data)?.message)}})
-            }
+            setErrorUpdateProfile(profileError);
+            setSuccessUpdateProfile(null);
+
         }
 
         if (profileResponse?.status === 200) {
             setUpdateLoading(false);
+            setErrorUploadAvatar(null);
+            setSuccessUpdateProfile(profileResponse);
             updateProfileContext({
                 first_name: form.getValues("first_name"),
                 last_name: form.getValues("last_name"),
                 avatar_url: avatarUrl || profileData?.avatar_url,
                 date_of_birth: form.getValues("date_of_birth")
             });
-
-            CustomToast({type: {type: "success", message: String(profileResponse?.response?.message)}});
-
         }
     }, [profileLoading]);
+
+    useEffect(() => {
+        if (updateLoading) {
+            CustomToast({type: {type: "loading", message: "Updating..."}})
+        }
+        if (successUpdateProfile) {
+            console.log("run success")
+            CustomToast({type: {type: "success", message: String(successUpdateProfile?.response?.message)}});
+        }
+
+        if (errorUpdateProfile) {
+            if (errorUpdateProfile.status === 401) {
+                setSessionExpired(true);
+            } else {
+                CustomToast({type: {type: "error", message: String((errorUpdateProfile?.response?.data)?.message)}})
+            }
+        }
+    }, [successUpdateProfile, errorUpdateProfile]);
 
     return (
         <div className="m-6">
