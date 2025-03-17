@@ -8,18 +8,14 @@ import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar";
 import React, {useEffect, useState} from "react";
 import {zodResolver} from "@hookform/resolvers/zod";
 import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form";
-import {useSelector} from "react-redux";
-import {RootState} from "@/store";
-import {uploadAvatar} from "@/store/slices/s3Slice";
-import {useAppDispatch} from "@/store/hooks";
-import {s3State} from "@/utils/reduxType";
-import {ApiResponse, OverrideAxiosError, Profile} from "@/utils/type";
+import {Profile} from "@/utils/type";
 import {Toaster} from "@/components/ui/toaster";
-import {updateProfile} from "@/store/slices/profileSlice";
-import CustomToast from "@/components/custom-toast";
 import {formatDateToInput} from "@/utils/scripts";
 import SessionExpiredCard from "@/components/end-session-card";
 import {useLocalContext} from "@/context/context-provider";
+import {useS3Store} from "@/store/s3-zustand";
+import {useToastManager} from "@/hooks/use-toast-manager";
+import {useUpdateProfileStore} from "@/store/update-profile-zustand";
 
 const profileSchema = z.object({
     avatar_url: z.string().optional(),
@@ -29,118 +25,107 @@ const profileSchema = z.object({
 });
 
 export default function ProfilePage() {
-    const dispatch = useAppDispatch();
-    const profileData = localStorage.getItem("profile") ? JSON.parse(localStorage.getItem("profile") || "") as Profile : null;
-    const {avatarUrl, error, success} = useSelector((state: RootState) => state.s3 as s3State);
     const {updateProfileContext} = useLocalContext();
-    const {
-        error: profileError,
-        updateProfileLoading: profileLoading,
-        updateProfileRes: profileResponse,
-    } = useSelector((state: RootState) => state.profile);
-    const [avatarPreview, setAvatarPreview] = useState(profileData?.avatar_url);
-    const [file, setFile] = useState<File | null>();
-    const [profile, setProfile] = useState<Profile>();
-    const [updateLoading, setUpdateLoading] = useState<boolean>(false);
-    const [sessionExpired, setSessionExpired] = useState<boolean>(false);
 
-    const [errorUploadAvatar, setErrorUploadAvatar] = useState<string | null>();
-    const [errorUpdateProfile, setErrorUpdateProfile] = useState<OverrideAxiosError<unknown> | null>(null);
-    const [successUpdateProfile, setSuccessUpdateProfile] = useState<ApiResponse<Profile> | null>(null);
+    const [sessionExpired, setSessionExpired] = useState<boolean>(false);
+    const [avatar, setAvatar] = useState<File | null>(null);
+    const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+    const [isUpdate, setIsUpdate] = useState<boolean>(false);
+
+    const {error, uploadAvatar, avatarUrl} = useS3Store();
+    const {
+        apiUpdateProfile,
+        errorUpdateProfile,
+        loadingUpdateProfile,
+        updateProfile,
+        clearError
+    } = useUpdateProfileStore();
+
+    const {showToast} = useToastManager();
+    const {profileContext} = useLocalContext();
+
 
     const form = useForm<z.infer<typeof profileSchema>>({ // change here
         resolver: zodResolver(profileSchema),
         defaultValues: {
-            avatar_url: profileData?.avatar_url || "",
-            first_name: profileData?.first_name || "",
-            last_name: profileData?.last_name || "",
-            date_of_birth: formatDateToInput(profileData?.date_of_birth || ""),
+            avatar_url: profileContext?.avatar_url || "",
+            first_name: profileContext?.first_name || "",
+            last_name: profileContext?.last_name || "",
+            date_of_birth: formatDateToInput(profileContext?.date_of_birth || ""),
         },
     });
 
-    const onSubmit = (data: Profile) => {
-        if (file) {
-            setProfile(data);
-            dispatch(uploadAvatar(file));
+    const onSubmit = async (data: Profile) => {
+        if (avatar) {
+            await uploadAvatar(avatar);
         } else {
-            dispatch(updateProfile({...data, avatar_url: ""}))
+            console.log("update profile don't have avatar url")
+            await updateProfile({body: {...data, avatar_url: profileContext?.avatar_url || ""}});
+            const cloneProfileContext = {...profileContext};
+            updateProfileContext({
+                avatar_url: cloneProfileContext?.avatar_url || "",
+                first_name: data.first_name,
+                last_name: data.last_name,
+                date_of_birth: data.date_of_birth,
+            })
         }
     };
 
     const handleAvatarChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         if (event.target.files && event.target.files.length > 0) {
-            setFile(event.target.files[0]);
+            setAvatar(event.target.files[0]);
         }
     };
 
     useEffect(() => {
-        if (file) {
-            const imageUrl = URL.createObjectURL(file);
+        if (avatar) {
+            const imageUrl = URL.createObjectURL(avatar);
             setAvatarPreview(imageUrl);
             form.setValue("avatar_url", imageUrl);
         }
-    }, [file]);
+    }, [avatar]);
 
     useEffect(() => {
         if (error) {
-            // CustomToast({type: {type: "error", message: "Can not upload avatar. Please try again !"}});
-            setErrorUploadAvatar(error)
+            showToast("error", "Can not upload avatar. Please try again !")
         }
-        if (success && profile) {
-            dispatch(updateProfile({...profile, avatar_url: avatarUrl || profileData?.avatar_url}));
+
+        if (avatarUrl) {
+            (async () => {
+                console.log("update profile have avatar url", avatarUrl);
+                await updateProfile({body: {...form.getValues(), avatar_url: avatarUrl}});
+            })()
         }
-    }, [error, success]);
+    }, [error, avatarUrl]);
 
     useEffect(() => {
-        if (errorUploadAvatar) {
-            CustomToast({type: {type: "error", message: "Can not upload avatar. Please try again !"}});
-        }
-    }, [errorUploadAvatar]);
-
-    useEffect(() => {
-        if (profileLoading) {
-            setUpdateLoading(true);
-            setErrorUploadAvatar(null);
-            setSuccessUpdateProfile(null);
-        }
-
-        if (profileError) {
-            setUpdateLoading(false);
-            setErrorUpdateProfile(profileError);
-            setSuccessUpdateProfile(null);
-
-        }
-
-        if (profileResponse?.status === 200) {
-            setUpdateLoading(false);
-            setErrorUploadAvatar(null);
-            setSuccessUpdateProfile(profileResponse);
-            updateProfileContext({
-                first_name: form.getValues("first_name"),
-                last_name: form.getValues("last_name"),
-                avatar_url: avatarUrl || profileData?.avatar_url,
-                date_of_birth: form.getValues("date_of_birth")
-            });
-        }
-    }, [profileLoading]);
-
-    useEffect(() => {
-        if (updateLoading) {
-            CustomToast({type: {type: "loading", message: "Updating..."}})
-        }
-        if (successUpdateProfile) {
-            console.log("run success")
-            CustomToast({type: {type: "success", message: String(successUpdateProfile?.response?.message)}});
-        }
-
         if (errorUpdateProfile) {
-            if (errorUpdateProfile.status === 401) {
+            if (errorUpdateProfile.response?.status === 401) {
+                console.log("session expired")
                 setSessionExpired(true);
             } else {
-                CustomToast({type: {type: "error", message: String((errorUpdateProfile?.response?.data)?.message)}})
+                showToast("error", `${errorUpdateProfile.response?.data?.message}`);
             }
+            clearError();
         }
-    }, [successUpdateProfile, errorUpdateProfile]);
+
+        if (loadingUpdateProfile) {
+            setIsUpdate(true);
+            showToast("loading", "Updating...")
+        }
+
+        if (apiUpdateProfile.status === 200) {
+            updateProfileContext({
+                avatar_url: avatarUrl || "",
+                first_name: form.getValues().first_name || "",
+                last_name: form.getValues().last_name || "",
+                date_of_birth: form.getValues().date_of_birth || "",
+            })
+            showToast("success", `${apiUpdateProfile.response.message}`);
+            setIsUpdate(false);
+        }
+    }, [errorUpdateProfile, loadingUpdateProfile, apiUpdateProfile]);
+
 
     return (
         <div className="m-6">
@@ -149,7 +134,7 @@ export default function ProfilePage() {
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                     <div className="flex items-center space-x-4">
                         <Avatar className="w-16 h-16">
-                            <AvatarImage src={avatarPreview ? avatarPreview : profileData?.avatar_url}
+                            <AvatarImage src={avatarPreview ?? profileContext?.avatar_url}
                                          alt="Avatar"/>
                             <AvatarFallback>U</AvatarFallback>
                         </Avatar>
@@ -189,8 +174,8 @@ export default function ProfilePage() {
                         </FormItem>
                     )}/>
 
-                    <Button type="submit" disabled={updateLoading}>
-                        {updateLoading ? "Updating..." : "Update Profile"}
+                    <Button type="submit" disabled={isUpdate}>
+                        {isUpdate ? "Updating..." : "Update Profile"}
                     </Button>
                 </form>
             </Form>

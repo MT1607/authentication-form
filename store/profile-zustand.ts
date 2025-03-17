@@ -40,5 +40,6 @@ export const useProfileStore = create<ProfileState>((set) => ({
         } catch (e) {
             set({errorProfile: e as OverrideAxiosError, loadingProfile: false})
         }
-    }
+    },
+
 }))

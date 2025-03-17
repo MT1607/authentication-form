@@ -10,15 +10,13 @@ import {
     BreadcrumbPage,
     BreadcrumbSeparator
 } from "@/components/ui/breadcrumb";
-import {useLocalStorage} from "@/hooks/use-local-storage";
 import {useEffect} from "react";
 import {useUserStore} from "@/store/user-zustand";
 import {useProfileStore} from "@/store/profile-zustand";
 import {useLocalContext} from "@/context/context-provider";
 
 export default function DashboardLayout({children}: { children: React.ReactNode }) {
-    const profileDta = useLocalStorage("profile");
-    const userDta = useLocalStorage("user");
+    const {userContext, profileContext} = useLocalContext();
 
     const {apiDataUser, getUser} = useUserStore();
     const {apiDataProfile, getProfile} = useProfileStore();
@@ -27,7 +25,7 @@ export default function DashboardLayout({children}: { children: React.ReactNode 
     const {updateUserContext} = useLocalContext();
 
     useEffect(() => {
-        if (!profileDta) {
+        if (!profileContext) {
             (async () => {
                 await getProfile();
             })()
@@ -46,7 +44,7 @@ export default function DashboardLayout({children}: { children: React.ReactNode 
     }, [apiDataProfile]);
 
     useEffect(() => {
-        if (!userDta) {
+        if (!userContext) {
             (async () => {
                 await getUser();
             })()

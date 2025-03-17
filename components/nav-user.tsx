@@ -26,9 +26,6 @@ export function NavUser() {
     const {profileContext} = useLocalContext();
     const {userContext} = useLocalContext();
 
-    // const userDta = useLocalStorage("user");
-    // const userEmail = userDta ? JSON.parse(userDta) : null;
-    // const userEmail = {email: "nguyengiason@gmail.com"}
     return (
         <SidebarMenu>
             <SidebarMenuItem>
