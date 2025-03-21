@@ -2,6 +2,7 @@ import type {Metadata} from "next";
 import {Geist, Geist_Mono} from "next/font/google";
 import "./globals.css";
 import {ContextProvider} from "@/context/context-provider";
+import ContextFileManagerProvider from "@/context/context-file-manager";
 
 
 const geistSans = Geist({
@@ -31,7 +32,9 @@ export default function RootLayout({
             className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         >
         <ContextProvider>
-            {children}
+            <ContextFileManagerProvider>
+                {children}
+            </ContextFileManagerProvider>
         </ContextProvider>
         </body>
         </html>

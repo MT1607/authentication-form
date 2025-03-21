@@ -38,3 +38,15 @@ export interface reduxType<T extends object> {
     loading: boolean;
 }
 
+export interface FolderType {
+    id: string,
+    name: string
+}
+
+export interface FileType {
+    id: string,
+    name: string,
+    isDir: boolean,
+    parentId?: string,
+    path?: string, // Located in Root directory
+}

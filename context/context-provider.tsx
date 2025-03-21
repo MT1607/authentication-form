@@ -21,6 +21,7 @@ export const ContextProvider = ({children}: { children: React.ReactNode }) => {
     const [profileContext, setProfileContext] = useState<Profile | null>(initialProfile);
     const [userContext, setUserContext] = useState<User | null>(initialUserContext);
 
+
     const updateProfileContext = (newProfile: Profile) => {
         setProfileContext(newProfile);
         localStorage.setItem("profile", JSON.stringify(newProfile));
@@ -52,7 +53,8 @@ export const ContextProvider = ({children}: { children: React.ReactNode }) => {
     }, []);
 
     return (
-        <Context.Provider value={{profileContext, userContext, updateProfileContext, updateUserContext}}>
+        <Context.Provider
+            value={{profileContext, userContext, updateProfileContext, updateUserContext}}>
             {children}
         </Context.Provider>
     );
