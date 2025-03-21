@@ -10,6 +10,11 @@ const StoragePage = () => {
     const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
     const router = useRouter();
 
+    // Filter to only show root folders (parentId === "0" or undefined)
+    const rootFolders = fileContext.filter(file =>
+        file.isDir && (!file.parentId || file.parentId === "0")
+    );
+
     const handleClick = (event: React.MouseEvent, id: string) => {
         event.stopPropagation();
         setSelectedFolder(id);
@@ -20,29 +25,28 @@ const StoragePage = () => {
     };
 
     return (
-        <div className="h-full w-full grid grid-cols-12 grid-rows-12 gap-1 p-2">
-            <div className="col-span-2 row-span-12 p-2 border-2">Folder tree</div>
-            <div className="col-span-10 row-span-2 p-2 border-2">Storage setting</div>
-
-            <div className="col-span-10 row-span-10 grid grid-cols-8 gap-3 p-3 border-2 overflow-auto">
-                {fileContext?.map((file) => (
+        <div>
+            {rootFolders.length === 0 ? (
+                <div className="col-span-8 text-center py-8 text-gray-500">
+                    No folders yet. Right-click to create a new folder.
+                </div>
+            ) : (
+                rootFolders.map((file) => (
                     <div
                         key={file.id}
-                        className={`p-2 border rounded w-fit h-fit ${
+                        className={`p-2 border rounded w-fit h-fit hover:shadow-md transition-shadow ${
                             selectedFolder === file.id ? "bg-blue-200" : "bg-white"
                         }`}
                         onClick={(event) => handleClick(event, file.id)}
                         onDoubleClick={() => handleDoubleClick(file.id)}
                     >
-                        {file.isDir && (
-                            <div className={"flex flex-col items-center justify-center"}>
-                                <Image src="/folder-icon.svg" alt="folder icon" width={100} height={100}/>
-                                <span>{file.name}</span>
-                            </div>
-                        )}
+                        <div className={"flex flex-col items-center justify-center"}>
+                            <Image src="/folder-icon.svg" alt="folder icon" width={100} height={100}/>
+                            <span>{file.name}</span>
+                        </div>
                     </div>
-                ))}
-            </div>
+                ))
+            )}
         </div>
     );
 };

@@ -1,62 +1,62 @@
 "use client"
 
 import {FileType} from "@/utils/type";
-import {createContext, useContext, useRef, useState} from "react";
-import {Dialog, DialogContent, DialogFooter, DialogHeader} from "@/components/ui/dialog";
-import {Button} from "@/components/ui/button";
-import {Input} from "@/components/ui/input";
+import {createContext, useContext, useState} from "react";
 
 // Define context type
 type ContextFileManagerType = {
     fileContext: FileType[];
-    openCreateFolderDialog: () => void;
-    handleCreateFolder: (folderName: string) => void;
+    setFileContext: (fileContext: FileType[]) => void;
+    isCreateFolderDialogOpen: boolean;
+    openCreateFolderDialog: (parentId: string) => void;
+    closeCreateFolderDialog: () => void;
+    createFolder: (folderName: string) => void;
+    currentParentId: string
 };
 
 const ContextFileManager = createContext<ContextFileManagerType | null>(null);
 
-const ContextFileManagerProvider = ({children}: { children: React.ReactNode }) => {
+// context-file-manager.tsx
+export const ContextFileManagerProvider = ({children}: { children: React.ReactNode }) => {
     const [fileContext, setFileContext] = useState<FileType[]>([]);
-    const [isDialogOpen, setIsDialogOpen] = useState(false);
-    const folderNameRef = useRef<HTMLInputElement>(null);
+    const [isCreateFolderDialogOpen, setIsCreateFolderDialogOpen] = useState(false);
+    const [currentParentId, setCurrentParentId] = useState("0"); // Default to root
 
-    const openCreateFolderDialog = () => {
-        setIsDialogOpen(true);
+    const openCreateFolderDialog = (parentId: string = "0") => {
+        setCurrentParentId(parentId);
+        setIsCreateFolderDialogOpen(true);
     };
 
-    const handleCreateFolder = (folderName: string) => {
-        if (!folderName.trim()) return;
+    const closeCreateFolderDialog = () => {
+        setIsCreateFolderDialogOpen(false);
+    };
 
-        const id = Date.now().toString();
-        const parentId = "0";
+    const createFolder = (name: string) => {
         const newFolder: FileType = {
-            id,
-            name: folderName,
+            id: Math.random().toString(36).substr(2, 9),
+            name,
             isDir: true,
-            parentId,
-            path: parentId ? `${fileContext.find(f => f.id === parentId)?.path || ''}/${folderName}` : `/${folderName}`,
+            parentId: currentParentId,
+            path: `storage/${currentParentId === "0" ? "" : currentParentId}`
         };
 
-        setFileContext(prev => [...prev, newFolder]);
-        setIsDialogOpen(false);
+        setFileContext([...fileContext, newFolder]);
+        closeCreateFolderDialog();
     };
 
     return (
-        <ContextFileManager.Provider value={{fileContext, openCreateFolderDialog, handleCreateFolder}}>
+        <ContextFileManager.Provider
+            value={{
+                fileContext,
+                setFileContext,
+                isCreateFolderDialogOpen,
+                openCreateFolderDialog,
+                closeCreateFolderDialog,
+                createFolder,
+                currentParentId
+            }}
+        >
             {children}
-
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogContent>
-                    <DialogHeader>Nhập tên thư mục</DialogHeader>
-                    <Input ref={folderNameRef} placeholder="Tên thư mục"/>
-                    <DialogFooter>
-                        <Button onClick={() => setIsDialogOpen(false)} variant="outline">Hủy</Button>
-                        <Button onClick={() => handleCreateFolder(folderNameRef.current?.value || "")}>
-                            Tạo
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
         </ContextFileManager.Provider>
     );
 };
