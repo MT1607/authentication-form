@@ -42,7 +42,8 @@ export default function SignupPage() {
     }, [error]);
 
     useEffect(() => {
-        if (apiData) {
+        if (apiData.status === 200) {
+            console.log("apiData register page: ", apiData);
             showToast("success", `${apiData.response.message}`);
             router.push("/dashboard");
         }
