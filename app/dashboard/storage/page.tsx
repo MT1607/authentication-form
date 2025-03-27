@@ -3,7 +3,7 @@
 import {useState} from "react";
 import {useRouter} from "next/navigation";
 import {useContextFileManager} from "@/context/context-file-manager";
-import Image from "next/image";
+import {FileComponent} from "@/components/FileComponent";
 
 const StoragePage = () => {
     const {fileContext} = useContextFileManager();
@@ -11,9 +11,7 @@ const StoragePage = () => {
     const router = useRouter();
 
     // Filter to only show root folders (parentId === "0" or undefined)
-    const rootFolders = fileContext.filter(file =>
-        file.isDir && (!file.parentId || file.parentId === "0")
-    );
+    const rootFolders = fileContext.filter(file => file.parentId === "0");
 
     const handleClick = (event: React.MouseEvent, id: string) => {
         event.stopPropagation();
@@ -25,9 +23,9 @@ const StoragePage = () => {
     };
 
     return (
-        <div>
+        <div className={"col-span-10 flex flex-row gap-2"}>
             {rootFolders.length === 0 ? (
-                <div className="col-span-8 text-center py-8 text-gray-500">
+                <div className="w-full text-center py-8 text-gray-500">
                     No folders yet. Right-click to create a new folder.
                 </div>
             ) : (
@@ -40,10 +38,7 @@ const StoragePage = () => {
                         onClick={(event) => handleClick(event, file.id)}
                         onDoubleClick={() => handleDoubleClick(file.id)}
                     >
-                        <div className={"flex flex-col items-center justify-center"}>
-                            <Image src="/folder-icon.svg" alt="folder icon" width={100} height={100}/>
-                            <span>{file.name}</span>
-                        </div>
+                        <FileComponent nameFile={file.name} isDir={file.isDir}/>
                     </div>
                 ))
             )}

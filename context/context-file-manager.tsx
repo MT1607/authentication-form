@@ -1,7 +1,7 @@
 "use client"
 
 import {FileType} from "@/utils/type";
-import {createContext, useContext, useState} from "react";
+import {createContext, useContext, useEffect, useState} from "react";
 
 // Define context type
 type ContextFileManagerType = {
@@ -11,6 +11,7 @@ type ContextFileManagerType = {
     openCreateFolderDialog: (parentId: string) => void;
     closeCreateFolderDialog: () => void;
     createFolder: (folderName: string) => void;
+    uploadFile: (folderName: string, parentId: string) => void;
     currentParentId: string
 };
 
@@ -44,6 +45,22 @@ export const ContextFileManagerProvider = ({children}: { children: React.ReactNo
         closeCreateFolderDialog();
     };
 
+    const uploadFile = (name: string, parentId: string = "0") => {
+        setCurrentParentId(parentId);
+        const newFile: FileType = {
+            id: Math.random().toString(36).substr(2, 9),
+            name,
+            isDir: false,
+            parentId: parentId,
+            path: `storage/${parentId}`
+        };
+        setFileContext([...fileContext, newFile]);
+    }
+
+    useEffect(() => {
+        sessionStorage.setItem("files", JSON.stringify(fileContext));
+    }, [fileContext]);
+
     return (
         <ContextFileManager.Provider
             value={{
@@ -53,6 +70,7 @@ export const ContextFileManagerProvider = ({children}: { children: React.ReactNo
                 openCreateFolderDialog,
                 closeCreateFolderDialog,
                 createFolder,
+                uploadFile,
                 currentParentId
             }}
         >

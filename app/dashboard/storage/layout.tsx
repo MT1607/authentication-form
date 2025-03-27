@@ -3,7 +3,7 @@
 import {Item, Menu, useContextMenu} from "react-contexify";
 import "react-contexify/dist/ReactContexify.css";
 
-import {useRef} from "react";
+import {useRef, useState} from "react";
 import {useContextFileManager} from "@/context/context-file-manager";
 import "@thelicato/react-file-manager/dist/style.css";
 import {useParams} from "next/navigation";
@@ -13,7 +13,8 @@ const MENU_ID = "context-menu";
 
 const StorageLayout = ({children}: { children: React.ReactNode }) => {
     const {show} = useContextMenu();
-    const {openCreateFolderDialog} = useContextFileManager();
+    const {openCreateFolderDialog, uploadFile} = useContextFileManager();
+    const [dragging, setDragging] = useState(false);
     const params = useParams();
     const folderId = params.id as string || "0"; // Default to root if no ID
 
@@ -23,6 +24,16 @@ const StorageLayout = ({children}: { children: React.ReactNode }) => {
         if (containerRef.current && containerRef.current.contains(event.target as Node)) {
             event.preventDefault();
             show({event, id: MENU_ID});
+        }
+    };
+
+    const handleDragging = (event: React.DragEvent) => {
+        const files = event.dataTransfer.files;
+        setDragging(false);
+        if (files.length > 0) {
+            const uploadedFiles = Array.from(files).map(file => file.name);
+            uploadFile(uploadedFiles.toString(), folderId);
+            alert("Tệp đã được tải lên tạm thời!");
         }
     };
 
@@ -37,7 +48,13 @@ const StorageLayout = ({children}: { children: React.ReactNode }) => {
                 <div className="col-span-10 row-span-2 p-2 border-2">Storage setting</div>
 
                 <div
-                    className="col-span-10 row-span-10 grid grid-cols-8 gap-3 p-3 border-2 overflow-auto"
+                    className={`col-span-10 row-span-10 grid grid-cols-8 gap-3 p-3 border-2 overflow-auto ${dragging ? "border-2 border-blue-500" : ""}`}
+                    onDragOver={(event) => {
+                        event.preventDefault();
+                        setDragging(true)
+                    }}
+                    onDragLeave={() => setDragging(false)}
+                    onDrop={handleDragging}
                 >
                     {children}
                 </div>
